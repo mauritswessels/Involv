@@ -1,0 +1,610 @@
+import type { Opportunity, Application, User } from '../types';
+
+export const mockOpportunities: Opportunity[] = [
+  {
+    id: '1',
+    title: 'Riverside Park Clean-Up Campaign',
+    category: 'Sustainability & Environment',
+    shortDescription:
+      "Join the Environmental Club for monthly clean-up sessions at Riverside Park, helping maintain one of the city's most-used green spaces.",
+    fullDescription: `The Environmental Club organises monthly clean-up sessions at Riverside Park in partnership with the City Parks Department. Volunteers collect litter, remove invasive plant species, and assist with light landscaping — all equipment is provided.
+
+Sessions run from 9:00 AM to 12:00 PM on the last Saturday of each month. All volunteer hours are officially logged and can be included in your co-curricular record.
+
+No prior experience is necessary — just wear comfortable clothes and bring sturdy footwear. It's a great way to spend a Saturday morning, meet like-minded students, and make a visible difference in the local environment.`,
+    organizerName: 'Ms. Sarah Chen',
+    organizerRole: 'Environmental Club Advisor',
+    organizerEmail: 's.chen@school.edu',
+    locationType: 'Off-campus',
+    locationText: 'Riverside Park, Gate 3 Entrance',
+    dates: 'Last Saturday of each month',
+    timeCommitment: '3 hours/session',
+    durationType: 'Ongoing',
+    skillLevel: 'Beginner',
+    impactType: 'Direct',
+    skillsRequired: [],
+    minGradeOrAge: 'Grade 9',
+    languageRequirements: [],
+    positionsAvailable: 20,
+    applicationDeadline: '2026-05-28',
+    startDate: '2026-06-01',
+    skillsGained: ['Environmental stewardship', 'Teamwork', 'Community coordination'],
+    cvRelevance: 'Community service, environmental initiative',
+    impactDescription:
+      'Each session removes approximately 50 kg of litter and helps maintain over 2 hectares of green space.',
+    tags: ['environment', 'outdoor', 'community', 'monthly', 'no-experience'],
+    featured: true,
+    applicantsCount: 14,
+    createdAt: '2026-05-01',
+  },
+  {
+    id: '2',
+    title: 'Peer Tutoring Programme — Maths & Sciences',
+    category: 'Education & Mentorship',
+    shortDescription:
+      'Support Grade 8–10 students with weekly one-on-one or small-group tutoring in mathematics, physics, chemistry, or biology.',
+    fullDescription: `The Peer Tutoring Programme connects senior students with younger peers who need academic support. As a tutor, you will lead sessions (1–3 students) focused on Maths, Physics, Chemistry, or Biology, twice a week in the school library.
+
+Sessions run Tuesdays and Thursdays from 3:30 PM to 5:00 PM. You will be matched with students based on subject expertise and availability. A one-session training on effective tutoring techniques is provided before you begin.
+
+This role demonstrates subject mastery and academic leadership — both qualities that stand out in university applications and scholarship interviews.`,
+    organizerName: 'Mr. David Okonkwo',
+    organizerRole: 'Academic Support Coordinator',
+    organizerEmail: 'd.okonkwo@school.edu',
+    locationType: 'On-campus',
+    locationText: 'School Library — Study Room B',
+    dates: 'Tuesdays and Thursdays, Term 2–3',
+    timeCommitment: '3 hours/week',
+    durationType: 'Fixed period',
+    skillLevel: 'Intermediate',
+    impactType: 'Direct',
+    skillsRequired: ['Strong Maths or Science background', 'Patience', 'Clear communication'],
+    minGradeOrAge: 'Grade 11',
+    languageRequirements: ['English'],
+    positionsAvailable: 12,
+    applicationDeadline: '2026-06-05',
+    startDate: '2026-06-10',
+    skillsGained: ['Teaching', 'Communication', 'Subject mastery', 'Leadership'],
+    cvRelevance: 'Tutoring, academic leadership, mentoring',
+    impactDescription:
+      'Last term, peer tutors helped improve average Maths grades by 8% among supported students.',
+    tags: ['tutoring', 'academic', 'maths', 'science', 'leadership'],
+    featured: true,
+    applicantsCount: 8,
+    createdAt: '2026-05-03',
+  },
+  {
+    id: '3',
+    title: 'Annual Charity Gala — Student Volunteer Team',
+    category: 'Community & Social Impact',
+    shortDescription:
+      "Help plan and run the school's annual charity gala, raising funds for the local food bank and community shelter.",
+    fullDescription: `The Annual Charity Gala is one of the school's most significant community events. We need student volunteers for planning, event-day logistics, guest management, stage management, and post-event wrap-up.
+
+Available roles: planning committee, sponsorship outreach, design and promotion, venue setup, door management, and MC support. The gala takes place on Friday, 18 July 2026, with three planning meetings beforehand.
+
+Previous volunteers consistently cite this event as one of the most rewarding and professionally educational experiences of their school career.`,
+    organizerName: 'Ms. Amara Diallo',
+    organizerRole: 'Student Services Coordinator',
+    organizerEmail: 'a.diallo@school.edu',
+    locationType: 'On-campus',
+    locationText: 'Main Hall and Foyer',
+    dates: '18 July 2026, plus 3 planning meetings in June',
+    timeCommitment: '8 hours (event day) + 3 hours planning',
+    durationType: 'One-time',
+    skillLevel: 'Beginner',
+    impactType: 'Indirect',
+    skillsRequired: ['Reliability', 'Positive attitude'],
+    minGradeOrAge: 'Grade 9',
+    languageRequirements: [],
+    positionsAvailable: 25,
+    applicationDeadline: '2026-06-20',
+    startDate: '2026-07-18',
+    skillsGained: ['Event management', 'Teamwork', 'Public relations', 'Logistics'],
+    cvRelevance: 'Event coordination, fundraising, community service',
+    impactDescription: "Last year's gala raised $18,400 for three local community organisations.",
+    tags: ['fundraising', 'event', 'community', 'gala', 'one-time'],
+    featured: true,
+    applicantsCount: 31,
+    createdAt: '2026-05-05',
+  },
+  {
+    id: '4',
+    title: "Elderly Companion Visits — St. Margaret's Care Home",
+    category: 'Health & Wellbeing',
+    shortDescription:
+      'Visit residents at a local care home each week for social activities, conversation, and companionship.',
+    fullDescription: `In partnership with St. Margaret's Care Home, we are seeking empathetic, reliable students to commit to weekly visits. Volunteers spend 90 minutes with residents — conversation, card games, reading aloud, or simply being present.
+
+A one-session training on communicating with elderly individuals is provided. This opportunity is particularly relevant for students considering healthcare, psychology, social work, or community development careers.
+
+Please note this is a genuine commitment. Consistent attendance matters greatly to the residents, so only apply if you can reliably attend each week for the term.`,
+    organizerName: 'Dr. Priya Mehta',
+    organizerRole: 'Community Partnership Lead',
+    organizerEmail: 'p.mehta@school.edu',
+    locationType: 'Off-campus',
+    locationText: "St. Margaret's Care Home, 42 Oak Lane",
+    dates: 'Every Wednesday, 3:30 PM – 5:00 PM',
+    timeCommitment: '1.5 hours/week',
+    durationType: 'Ongoing',
+    skillLevel: 'Beginner',
+    impactType: 'Direct',
+    skillsRequired: ['Empathy', 'Good communication', 'Reliability'],
+    minGradeOrAge: 'Grade 10',
+    languageRequirements: [],
+    positionsAvailable: 8,
+    applicationDeadline: '2026-05-30',
+    startDate: '2026-06-04',
+    skillsGained: ['Empathy', 'Communication', 'Healthcare insight', 'Patience'],
+    cvRelevance: 'Healthcare, social work, community service',
+    impactDescription:
+      'Regular social visits reduce symptoms of depression in care home residents by up to 30%, according to NHS research.',
+    tags: ['elderly', 'care', 'healthcare', 'weekly', 'compassion'],
+    featured: false,
+    applicantsCount: 6,
+    createdAt: '2026-05-06',
+  },
+  {
+    id: '5',
+    title: 'Annual Sports Day — Event Volunteer',
+    category: 'School-Based Service',
+    shortDescription:
+      'Support the PE department on Sports Day, assisting with timekeeping, equipment, scorekeeping, and student coordination.',
+    fullDescription: `The Physical Education Department is recruiting student volunteers for Sports Day on 5 June 2026. Roles include timekeeping, scorekeeping, equipment management, water station management, and general student coordination.
+
+A briefing session runs on 3 June (30 minutes, after school). All volunteers receive a certificate of participation and their service hours officially recorded.
+
+This is a fun, high-energy day requiring good organisation and a positive attitude. Prior sports experience is not required — enthusiasm and reliability matter most.`,
+    organizerName: 'Mr. James Thornton',
+    organizerRole: 'Head of Physical Education',
+    organizerEmail: 'j.thornton@school.edu',
+    locationType: 'On-campus',
+    locationText: 'School Sports Ground and Athletics Track',
+    dates: '5 June 2026 (full day)',
+    timeCommitment: '6 hours',
+    durationType: 'One-time',
+    skillLevel: 'Beginner',
+    impactType: 'Direct',
+    skillsRequired: ['Physical fitness', 'Organisation', 'Enthusiasm'],
+    minGradeOrAge: 'Grade 9',
+    languageRequirements: ['English'],
+    positionsAvailable: 30,
+    applicationDeadline: '2026-05-25',
+    startDate: '2026-06-05',
+    skillsGained: ['Event logistics', 'Teamwork', 'Time management'],
+    cvRelevance: 'School event volunteering, sports administration',
+    impactDescription:
+      'Sports Day celebrates the achievements of over 600 students across all year groups.',
+    tags: ['sports', 'school', 'one-day', 'active', 'logistics'],
+    featured: false,
+    applicantsCount: 22,
+    createdAt: '2026-05-08',
+  },
+  {
+    id: '6',
+    title: 'Social Media & Design — Mental Health Awareness Campaign',
+    category: 'Arts, Culture & Media',
+    shortDescription:
+      "Create visual content and manage the school's social media presence for Mental Health Awareness Week in June.",
+    fullDescription: `The Student Wellbeing Committee is seeking creative students to design and deliver content for Mental Health Awareness Week (16–20 June 2026). This includes Instagram posts, infographics, short video reels, digital posters, and a campaign hashtag strategy.
+
+You'll work as part of a small creative team (4–5 students) led by the Wellbeing Committee President. Tools used: Canva, Adobe Express, or equivalent. Photography and short video editing are also welcome.
+
+This is an excellent project for a design portfolio and demonstrates initiative around a meaningful social cause.`,
+    organizerName: 'Ms. Lily Zhang',
+    organizerRole: 'Wellbeing Committee President',
+    organizerEmail: 'l.zhang@school.edu',
+    locationType: 'Remote',
+    locationText: 'Remote, with 2 on-campus planning meetings',
+    dates: '3–20 June 2026',
+    timeCommitment: '4–6 hours/week for 3 weeks',
+    durationType: 'Fixed period',
+    skillLevel: 'Intermediate',
+    impactType: 'Indirect',
+    skillsRequired: ['Graphic design or Canva', 'Creative writing', 'Attention to detail'],
+    minGradeOrAge: 'Grade 10',
+    languageRequirements: ['English'],
+    positionsAvailable: 5,
+    applicationDeadline: '2026-05-30',
+    startDate: '2026-06-03',
+    skillsGained: [
+      'Graphic design',
+      'Social media management',
+      'Campaign planning',
+      'Creative direction',
+    ],
+    cvRelevance: 'Marketing, design, communications, mental health advocacy',
+    impactDescription:
+      "Last year's campaign reached over 1,200 students and was shared in the school newsletter and community noticeboard.",
+    tags: ['design', 'social media', 'mental health', 'remote', 'creative'],
+    featured: false,
+    applicantsCount: 9,
+    createdAt: '2026-05-09',
+  },
+  {
+    id: '7',
+    title: 'Website Redesign — Community Food Bank',
+    category: 'Technology & Innovation',
+    shortDescription:
+      'Build a modern website for the local food bank to improve their online presence, donor experience, and volunteer sign-up process.',
+    fullDescription: `The Community Food Bank has approached the school for help redesigning their outdated website. This is a real client project — you will work in a small team (2–3 developers, 1 project manager) to deliver a fully functional website by August 2026.
+
+Scope includes: homepage, about section, donation page, volunteer sign-up form, and social media links. The client has a brief; the student team will be responsible for design decisions, development, and client communication.
+
+A professional web developer (parent volunteer) is available as a mentor. This is a serious, portfolio-worthy project with a real deadline and a real audience.`,
+    organizerName: 'Mr. Alex Kim',
+    organizerRole: 'Computer Science Teacher',
+    organizerEmail: 'a.kim@school.edu',
+    locationType: 'Remote',
+    locationText: 'Remote (optional on-campus co-working sessions available)',
+    dates: 'June – August 2026',
+    timeCommitment: '5–8 hours/week',
+    durationType: 'Fixed period',
+    skillLevel: 'Intermediate',
+    impactType: 'Direct',
+    skillsRequired: ['HTML/CSS', 'JavaScript basics', 'Clear communication'],
+    minGradeOrAge: 'Grade 11',
+    languageRequirements: ['English'],
+    positionsAvailable: 3,
+    applicationDeadline: '2026-05-31',
+    startDate: '2026-06-07',
+    skillsGained: [
+      'Web development',
+      'Client communication',
+      'Project management',
+      'UI/UX thinking',
+    ],
+    cvRelevance: 'Web development, real-world project, nonprofit tech',
+    impactDescription:
+      'A modernised website is projected to increase monthly donations by 20–35% based on comparable nonprofit case studies.',
+    tags: ['tech', 'web', 'nonprofit', 'remote', 'portfolio'],
+    featured: true,
+    applicantsCount: 11,
+    createdAt: '2026-05-10',
+  },
+  {
+    id: '8',
+    title: 'Refugee Homework Support Programme',
+    category: 'Global & Humanitarian',
+    shortDescription:
+      'Provide weekly academic and English language support to newly arrived refugee students aged 10–16.',
+    fullDescription: `In partnership with a local refugee support charity, this programme matches school volunteers with recently arrived refugee students who need help with schoolwork, English literacy, and adapting to the local school system.
+
+Sessions run Saturday mornings at the charity's community centre (return transport arranged by the school). Volunteers are matched with 1–2 students and maintain that pairing throughout the term.
+
+Safeguarding training and a Working with Children check are required before beginning — both are arranged and funded by the school. This is a deeply meaningful role suited to students with patience, cultural sensitivity, and a genuine long-term commitment.`,
+    organizerName: 'Ms. Fatima Al-Rashid',
+    organizerRole: 'Global Citizenship Coordinator',
+    organizerEmail: 'f.alrashid@school.edu',
+    locationType: 'Off-campus',
+    locationText: 'New Horizons Community Centre, 15 Bridge Street',
+    dates: 'Every Saturday, 9:30 AM – 11:30 AM',
+    timeCommitment: '2 hours/week',
+    durationType: 'Ongoing',
+    skillLevel: 'Beginner',
+    impactType: 'Direct',
+    skillsRequired: ['Empathy', 'Patience', 'Strong English literacy'],
+    minGradeOrAge: 'Grade 11',
+    languageRequirements: ['English (additional languages are a bonus)'],
+    positionsAvailable: 10,
+    applicationDeadline: '2026-06-10',
+    startDate: '2026-06-21',
+    skillsGained: [
+      'Cross-cultural communication',
+      'Teaching',
+      'Empathy',
+      'Social awareness',
+    ],
+    cvRelevance: 'Humanitarian service, social work, international development',
+    impactDescription:
+      'Last cohort supported 18 refugee students, all of whom successfully transitioned into mainstream schooling.',
+    tags: ['refugees', 'humanitarian', 'tutoring', 'weekly', 'social justice'],
+    featured: false,
+    applicantsCount: 7,
+    createdAt: '2026-05-11',
+  },
+  {
+    id: '9',
+    title: 'Student Leadership Forum — Organising Committee',
+    category: 'Business, Leadership & Management',
+    shortDescription:
+      'Join the planning team for the annual Student Leadership Forum, a full-day event bringing together leaders from 12 regional schools.',
+    fullDescription: `The Student Representative Council is forming the organising committee for the Annual Student Leadership Forum (September 2026). The forum brings together student leaders for a full day of workshops, keynote sessions, and structured networking.
+
+Committee roles available: logistics coordinator, speaker liaison, programme design, marketing, registration management, and day-of coordination. This is a four-month commitment running June through September, with monthly committee meetings.
+
+Previous committee members consistently rate this as one of the most formative leadership experiences of their school career. Expect real responsibility and high expectations.`,
+    organizerName: 'Mr. Tom Walsh',
+    organizerRole: 'SRC Faculty Advisor',
+    organizerEmail: 't.walsh@school.edu',
+    locationType: 'On-campus',
+    locationText: 'SRC Room and Main Auditorium',
+    dates: 'June – September 2026, plus event day',
+    timeCommitment: '3–5 hours/week (heavier in September)',
+    durationType: 'Fixed period',
+    skillLevel: 'Advanced',
+    impactType: 'Indirect',
+    skillsRequired: [
+      'Proven leadership experience',
+      'Strong organisation',
+      'Communication',
+      'Initiative',
+    ],
+    minGradeOrAge: 'Grade 11',
+    languageRequirements: ['English'],
+    positionsAvailable: 8,
+    applicationDeadline: '2026-06-01',
+    startDate: '2026-06-15',
+    skillsGained: [
+      'Event planning',
+      'Leadership',
+      'Stakeholder management',
+      'Professional communication',
+    ],
+    cvRelevance: 'Leadership, event management, organisational skills',
+    impactDescription:
+      'The forum engages over 300 student leaders and shapes student governance across 12 regional schools.',
+    tags: ['leadership', 'SRC', 'event planning', 'advanced', 'committee'],
+    featured: false,
+    applicantsCount: 15,
+    createdAt: '2026-05-12',
+  },
+  {
+    id: '10',
+    title: 'Primary School Reading Buddies',
+    category: 'Education & Mentorship',
+    shortDescription:
+      'Visit a local primary school every Friday to support early childhood literacy through paired reading sessions.',
+    fullDescription: `Reading Buddies connects secondary school students with Grade 1–3 students at nearby Greenfield Primary. Each visit is a 45-minute paired reading session: you listen to your assigned student read, offer gentle guidance, and celebrate their progress.
+
+The programme runs every Friday morning during Period 1 (8:30 AM – 9:20 AM, with teacher permission). Transport is provided. A training session covers how to support early readers and make sessions encouraging and enjoyable.
+
+This programme is consistently rated as one of the most rewarding by participating volunteers. Previous Reading Buddies have described the experience as genuinely perspective-changing.`,
+    organizerName: 'Ms. Rachel Osei',
+    organizerRole: 'Community Engagement Officer',
+    organizerEmail: 'r.osei@school.edu',
+    locationType: 'Off-campus',
+    locationText: 'Greenfield Primary School, 8 Meadow Road',
+    dates: 'Every Friday, Period 1 (8:30 – 9:20 AM)',
+    timeCommitment: '1 hour/week (including transport)',
+    durationType: 'Ongoing',
+    skillLevel: 'Beginner',
+    impactType: 'Direct',
+    skillsRequired: ['Patience', 'Good literacy skills'],
+    minGradeOrAge: 'Grade 10',
+    languageRequirements: ['English'],
+    positionsAvailable: 15,
+    applicationDeadline: '2026-06-03',
+    startDate: '2026-06-13',
+    skillsGained: ['Teaching', 'Patience', 'Communication', 'Child development awareness'],
+    cvRelevance: 'Education, tutoring, community service',
+    impactDescription:
+      '78% of paired students showed measurable improvement in reading fluency after one term.',
+    tags: ['reading', 'primary school', 'literacy', 'weekly', 'teaching'],
+    featured: false,
+    applicantsCount: 18,
+    createdAt: '2026-05-13',
+  },
+  {
+    id: '11',
+    title: 'School Urban Garden Project',
+    category: 'Sustainability & Environment',
+    shortDescription:
+      "Help establish and maintain the school's new urban garden, growing produce for the school canteen and community pantry.",
+    fullDescription: `The Science and Geography departments are transforming a disused courtyard into a productive urban garden this term. Produce will supply the school canteen, with surplus donated to the community food pantry.
+
+Volunteers help with planting, watering, weeding, composting, and tool maintenance. Sessions run on Monday lunchtimes (12:30 – 1:10 PM). No gardening experience is required — just enthusiasm and a willingness to learn.
+
+This project feeds directly into the school's sustainability goals and will be documented in the annual environmental report.`,
+    organizerName: 'Dr. Hannah Brooks',
+    organizerRole: 'Head of Science',
+    organizerEmail: 'h.brooks@school.edu',
+    locationType: 'On-campus',
+    locationText: 'North Courtyard — Urban Garden',
+    dates: 'Every Monday lunchtime, Term 2–3',
+    timeCommitment: '40 minutes/week',
+    durationType: 'Ongoing',
+    skillLevel: 'Beginner',
+    impactType: 'Direct',
+    skillsRequired: [],
+    minGradeOrAge: 'Grade 9',
+    languageRequirements: [],
+    positionsAvailable: 16,
+    applicationDeadline: '2026-05-26',
+    startDate: '2026-06-02',
+    skillsGained: ['Gardening', 'Sustainability', 'Environmental science', 'Teamwork'],
+    cvRelevance: 'Sustainability, environmental stewardship',
+    impactDescription:
+      'Expected to produce 30–40 kg of fresh produce per term, reducing canteen costs and food waste.',
+    tags: ['gardening', 'sustainability', 'school', 'weekly', 'environment'],
+    featured: false,
+    applicantsCount: 10,
+    createdAt: '2026-05-14',
+  },
+  {
+    id: '12',
+    title: 'Cultural Diversity Photography Exhibition',
+    category: 'Arts, Culture & Media',
+    shortDescription:
+      'Curate a school photography exhibition celebrating the cultural backgrounds and stories of students in our community.',
+    fullDescription: `The Arts Department and Cultural Society are co-producing an end-of-year exhibition showcasing the stories and backgrounds of students at our school. The exhibition will be displayed in the school foyer during Founders Week (August 2026) and published as a printed keepsake booklet.
+
+Roles available: photographer, subject interviewer and writer, digital editor, exhibition designer, and installation coordinator. The project runs approximately June to August with flexible hours.
+
+This is a portfolio-quality project that combines creative skills with meaningful storytelling.`,
+    organizerName: 'Ms. Clara Nkosi',
+    organizerRole: 'Head of Arts',
+    organizerEmail: 'c.nkosi@school.edu',
+    locationType: 'On-campus',
+    locationText: 'Arts Block and School Foyer',
+    dates: 'June – August 2026',
+    timeCommitment: '3–4 hours/week',
+    durationType: 'Fixed period',
+    skillLevel: 'Intermediate',
+    impactType: 'Indirect',
+    skillsRequired: ['Photography or design interest', 'Creativity', 'Attention to detail'],
+    minGradeOrAge: 'Grade 10',
+    languageRequirements: [],
+    positionsAvailable: 10,
+    applicationDeadline: '2026-06-07',
+    startDate: '2026-06-14',
+    skillsGained: ['Photography', 'Curation', 'Exhibition design', 'Storytelling'],
+    cvRelevance: 'Arts, creative media, cultural awareness, communications',
+    impactDescription:
+      "Last year's cultural exhibition was attended by over 400 community members and received local media coverage.",
+    tags: ['arts', 'photography', 'cultural', 'exhibition', 'creative'],
+    featured: false,
+    applicantsCount: 12,
+    createdAt: '2026-05-15',
+  },
+];
+
+export const mockApplications: Application[] = [
+  {
+    id: 'app-1',
+    opportunityId: '2',
+    opportunityTitle: 'Peer Tutoring Programme — Maths & Sciences',
+    applicantId: 'student-1',
+    applicantName: 'Jamie Chen',
+    grade: 'Grade 11',
+    motivation:
+      'I have always found that teaching something is the best way to deepen your own understanding. I scored well in Maths and Physics in Grade 10 and want to give back by helping younger students build confidence in these subjects.',
+    relevantExperience:
+      'I helped my younger sister prepare for her Year 10 maths exam over the holidays and found it genuinely rewarding. I have also supported classmates informally during study periods.',
+    availability: 'Available Tuesdays and Thursdays after school until 5:30 PM.',
+    status: 'Under Review',
+    submittedDate: '2026-05-08',
+  },
+  {
+    id: 'app-2',
+    opportunityId: '7',
+    opportunityTitle: 'Website Redesign — Community Food Bank',
+    applicantId: 'student-1',
+    applicantName: 'Jamie Chen',
+    grade: 'Grade 11',
+    motivation:
+      "I am studying Computer Science and want to work on a real project with a real client and a real deadline. The food bank's current site is very hard to navigate, and I think I can genuinely improve it.",
+    relevantExperience:
+      'I built a portfolio website using HTML, CSS, and JavaScript last year, and I have completed two modules on responsive web design through freeCodeCamp.',
+    availability: 'Available most weekday evenings and Saturday mornings. Can commit 6 hours/week.',
+    status: 'Pending',
+    submittedDate: '2026-05-14',
+  },
+  {
+    id: 'app-3',
+    opportunityId: '1',
+    opportunityTitle: 'Riverside Park Clean-Up Campaign',
+    applicantId: 'student-1',
+    applicantName: 'Jamie Chen',
+    grade: 'Grade 11',
+    motivation:
+      "I want to do something active and outdoors on weekends while contributing to the environment. I've walked through Riverside Park many times and it matters to me.",
+    relevantExperience: 'No formal experience, but I participated in a local beach clean-up last year.',
+    availability: 'Available every last Saturday of the month.',
+    status: 'Accepted',
+    submittedDate: '2026-05-05',
+  },
+];
+
+export const mockIncomingApplications: Application[] = [
+  {
+    id: 'incoming-1',
+    opportunityId: '2',
+    opportunityTitle: 'Peer Tutoring Programme — Maths & Sciences',
+    applicantId: 'student-2',
+    applicantName: 'Priya Sharma',
+    grade: 'Grade 12',
+    motivation:
+      'I achieved a 95 average in Maths and Chemistry this year and want to help students who are struggling with the content I found manageable. I enjoy explaining things clearly.',
+    relevantExperience:
+      'Organised a study group for my class before the Term 2 exam. Several classmates significantly improved their marks.',
+    availability: 'Tuesdays and Thursdays after school.',
+    status: 'Pending',
+    submittedDate: '2026-05-10',
+  },
+  {
+    id: 'incoming-2',
+    opportunityId: '2',
+    opportunityTitle: 'Peer Tutoring Programme — Maths & Sciences',
+    applicantId: 'student-3',
+    applicantName: 'Marcus Adeyemi',
+    grade: 'Grade 11',
+    motivation:
+      'My younger brother struggled with algebra and I spent weeks tutoring him. He ended up passing. I want to do the same for other students in the school.',
+    relevantExperience: 'Informal tutoring of family members. Strong in Maths and Physics.',
+    availability: 'Thursdays after school only.',
+    status: 'Under Review',
+    submittedDate: '2026-05-11',
+  },
+  {
+    id: 'incoming-3',
+    opportunityId: '2',
+    opportunityTitle: 'Peer Tutoring Programme — Maths & Sciences',
+    applicantId: 'student-4',
+    applicantName: 'Chloe Nguyen',
+    grade: 'Grade 12',
+    motivation:
+      "I plan to study education at university and want practical classroom-adjacent experience. I'm patient and well-organised.",
+    relevantExperience: 'Tutored a classmate in Biology this term. Academic record: A average in all sciences.',
+    availability: 'Both Tuesdays and Thursdays. Can stay until 6:00 PM.',
+    status: 'Accepted',
+    submittedDate: '2026-05-07',
+  },
+  {
+    id: 'incoming-4',
+    opportunityId: '2',
+    opportunityTitle: 'Peer Tutoring Programme — Maths & Sciences',
+    applicantId: 'student-5',
+    applicantName: 'Daniel Park',
+    grade: 'Grade 11',
+    motivation: 'I enjoy Maths and want to put that to use. Thought tutoring would be a good way to build communication skills.',
+    relevantExperience: 'No formal tutoring experience.',
+    availability: 'Tuesday afternoons only.',
+    status: 'Rejected',
+    submittedDate: '2026-05-09',
+  },
+];
+
+export const mockStudentUser: User = {
+  id: 'student-1',
+  name: 'Jamie Chen',
+  email: 'j.chen@student.school.edu',
+  role: 'student',
+  grade: 'Grade 11',
+  bio: 'I am interested in technology, mathematics, and community development. I want to use my skills to make a tangible difference while building experience for university.',
+  interests: ['Computer Science', 'Mathematics', 'Environmental issues', 'Music'],
+  careerGoals: ['Software engineering', 'Data science', 'Technology for social good'],
+  skills: ['Python', 'JavaScript', 'HTML/CSS', 'Maths tutoring', 'Canva'],
+  availability: ['Weekday afternoons (3–6 PM)', 'Saturday mornings'],
+  preferredCategories: [
+    'Technology & Innovation',
+    'Education & Mentorship',
+    'Sustainability & Environment',
+  ],
+};
+
+export const mockOrganizerUser: User = {
+  id: 'organizer-1',
+  name: 'Mr. David Okonkwo',
+  email: 'd.okonkwo@school.edu',
+  role: 'organizer',
+  bio: 'Academic Support Coordinator at the school. I run the Peer Tutoring Programme and coordinate academic interventions across Year 11 and 12.',
+  interests: ['Education equity', 'Academic support', 'Student wellbeing'],
+  careerGoals: [],
+  skills: ['Programme coordination', 'Mentoring', 'Curriculum design'],
+  availability: [],
+  preferredCategories: ['Education & Mentorship', 'Community & Social Impact'],
+};
+
+export const mockTeacherUser: User = {
+  id: 'teacher-1',
+  name: 'Ms. Sarah Chen',
+  email: 's.chen@school.edu',
+  role: 'teacher',
+  bio: 'Science teacher and Environmental Club advisor. Passionate about connecting students with real-world environmental challenges.',
+  interests: ['Environmental science', 'Sustainability', 'Student leadership'],
+  careerGoals: [],
+  skills: ['Environmental education', 'Project coordination', 'Community partnerships'],
+  availability: [],
+  preferredCategories: ['Sustainability & Environment', 'Education & Mentorship'],
+};

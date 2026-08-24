@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Involv"
+description = "A community opportunities platform connecting students with meaningful projects, volunteering, and collaboration opportunities."
+version = "1.0.0"
+id = "artifacts/involv"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24270
+
+[services.development]
+run = "pnpm --filter @workspace/involv run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/involv", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/involv/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24270"
+BASE_PATH = "/"
