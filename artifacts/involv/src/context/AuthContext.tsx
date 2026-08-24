@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { signInWithGoogle as sbSignIn, signOutUser } from '../services/authService';
 import { getProfileById, createProfile, updateProfile } from '../services/userService';
 import type { User, UserRole } from '../types';
@@ -51,6 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     // 1. Listen for auth state changes (covers page-load session restore + OAuth callback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {

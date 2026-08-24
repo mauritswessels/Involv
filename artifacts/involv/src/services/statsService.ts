@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 export interface SiteStats {
   activeOpportunities: number;
@@ -17,6 +17,14 @@ export interface SiteStats {
  * the landing page will show 0s instead of crashing.
  */
 export async function getSiteStats(): Promise<SiteStats> {
+  if (!isSupabaseConfigured) {
+    return {
+      activeOpportunities: 0,
+      studentsEnrolled: 0,
+      applicationsSubmitted: 0,
+    };
+  }
+
   const { data, error } = await supabase.rpc('get_site_stats');
 
   if (error || !data) {

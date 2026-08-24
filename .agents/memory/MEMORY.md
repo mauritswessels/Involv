@@ -1,0 +1,1 @@
+- [Involv preview connectivity](involv-preview.md) — public pages stay usable before Supabase is connected; remote features activate when configured.
