@@ -168,11 +168,6 @@ export default function LandingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="relative bg-white overflow-hidden">
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-900 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-900 animate-pulse" />
-              Service learning, made simpler
-          </div>
-
           <div className="flex justify-center mb-6">
             <img src="/logo.png" alt="Involv" className="h-32 w-auto" />
           </div>
@@ -214,18 +209,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Stats bar ─────────────────────────────────────────────────────────── */}
-      <section className="bg-white border-y border-slate-200 py-10">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 divide-x divide-slate-100">
-            <StatCounter value={stats?.activeOpportunities ?? 0} suffix="+" label="Active opportunities" />
-            <StatCounter value={9} label="Categories" />
-            <StatCounter value={stats?.studentsEnrolled ?? 0} suffix="+" label="Students enrolled" />
-            <StatCounter value={stats?.applicationsSubmitted ?? 0} suffix="+" label="Applications submitted" />
-          </div>
-        </div>
-      </section>
-
       {/* ── Categories ───────────────────────────────────────────────────────── */}
       <section className="py-16 bg-white border-y border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -262,6 +245,18 @@ export default function LandingPage() {
                 </Link>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Stats bar ─────────────────────────────────────────────────────────── */}
+      <section className="bg-white border-y border-slate-200 py-10">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 divide-x divide-slate-100">
+            <StatCounter value={stats?.activeOpportunities ?? 0} suffix="+" label="Active opportunities" />
+            <StatCounter value={9} label="Categories" />
+            <StatCounter value={stats?.studentsEnrolled ?? 0} suffix="+" label="Students enrolled" />
+            <StatCounter value={stats?.applicationsSubmitted ?? 0} suffix="+" label="Applications submitted" />
           </div>
         </div>
       </section>
