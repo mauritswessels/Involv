@@ -174,7 +174,7 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-5">
-            A better way to organise<br />
+            A clearer way to organise<br />
             <span className="text-blue-900">service learning.</span>
           </h1>
 
