@@ -6,15 +6,15 @@ import { createOpportunity } from '../services/opportunityService';
 import type { Opportunity } from '../types';
 
 const CATEGORIES = [
-  'Health & Wellbeing',
-  'Education & Mentorship',
-  'School-Based Service',
   'Community & Social Impact',
-  'Global & Humanitarian',
+  'Health & Wellbeing',
   'Sustainability & Environment',
+  'Global & Humanitarian',
   'Arts, Culture & Media',
-  'Technology & Innovation',
+  'School-Based Service',
   'Business, Leadership & Management',
+  'Technology & Innovation',
+  'Education & Mentorship',
 ];
 
 const SKILLS_OPTIONS = [
