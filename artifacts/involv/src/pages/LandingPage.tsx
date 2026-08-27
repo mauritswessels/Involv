@@ -32,7 +32,7 @@ const CATEGORIES = [
   { name: 'Sustainability & Environment', icon: LeafIcon, color: 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100' },
   { name: 'Arts, Culture & Media', icon: PaletteIcon, color: 'text-orange-700 bg-orange-50 border-orange-200 hover:bg-orange-100' },
   { name: 'Technology & Innovation', icon: MonitorIcon, color: 'text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100' },
-  { name: 'Business, Leadership & Management', icon: TrendingUpIcon, color: 'text-slate-700 bg-slate-100 border-slate-200 hover:bg-slate-200' },
+  { name: 'Business, Leadership & Management', icon: TrendingUpIcon, color: 'text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100' },
 ] as const;
 
 const STEPS = [
