@@ -167,17 +167,6 @@ export default function LandingPage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="relative bg-white overflow-hidden">
-        {/* Subtle grid background */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.035]"
-          style={{
-            backgroundImage:
-              'linear-gradient(#1e3a5f 1px, transparent 1px), linear-gradient(90deg, #1e3a5f 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none" />
-
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-900 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-900 animate-pulse" />
