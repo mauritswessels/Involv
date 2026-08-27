@@ -170,7 +170,7 @@ export default function LandingPage() {
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-900 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-900 animate-pulse" />
-            Built for school service learning
+              Service learning, made simpler
           </div>
 
           <div className="flex justify-center mb-6">
