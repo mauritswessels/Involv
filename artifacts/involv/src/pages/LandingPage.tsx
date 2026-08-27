@@ -4,11 +4,12 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
   CheckCircleIcon,
+  GraduationCapIcon,
   GlobeIcon,
   HeartIcon,
   LeafIcon,
   MonitorIcon,
-  MusicIcon,
+  PaletteIcon,
   SearchIcon,
   StarIcon,
   TrendingUpIcon,
@@ -27,11 +28,11 @@ const CATEGORIES = [
   { name: 'Community & Social Impact', icon: UsersIcon, color: 'text-sky-700 bg-sky-50 border-sky-200 hover:bg-sky-100' },
   { name: 'Education & Mentorship', icon: BookOpenIcon, color: 'text-violet-700 bg-violet-50 border-violet-200 hover:bg-violet-100' },
   { name: 'Health & Wellbeing', icon: HeartIcon, color: 'text-teal-700 bg-teal-50 border-teal-200 hover:bg-teal-100' },
-  { name: 'Arts, Culture & Media', icon: MusicIcon, color: 'text-orange-700 bg-orange-50 border-orange-200 hover:bg-orange-100' },
+  { name: 'Arts, Culture & Media', icon: PaletteIcon, color: 'text-orange-700 bg-orange-50 border-orange-200 hover:bg-orange-100' },
   { name: 'Technology & Innovation', icon: MonitorIcon, color: 'text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100' },
   { name: 'Business, Leadership & Management', icon: TrendingUpIcon, color: 'text-slate-700 bg-slate-100 border-slate-200 hover:bg-slate-200' },
   { name: 'Global & Humanitarian', icon: GlobeIcon, color: 'text-red-700 bg-red-50 border-red-200 hover:bg-red-100' },
-  { name: 'School-Based Service', icon: StarIcon, color: 'text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100' },
+  { name: 'School-Based Service', icon: GraduationCapIcon, color: 'text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100' },
 ] as const;
 
 const STEPS = [
