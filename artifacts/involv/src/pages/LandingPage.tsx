@@ -201,7 +201,7 @@ export default function LandingPage() {
 
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link to="/login" className="btn-primary px-6 py-2.5 text-sm">
-              Get started — it's free
+              Get started
             </Link>
             <Link to="/browse" className="btn-ghost text-sm">
               Browse opportunities <ArrowRightIcon size={13} />
