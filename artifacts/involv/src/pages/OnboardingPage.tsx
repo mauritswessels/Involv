@@ -10,8 +10,8 @@ const STEPS: Step[] = ['interests', 'skills', 'availability', 'details'];
 const CATEGORIES: Category[] = [
   'Sustainability & Environment',
   'Community & Social Impact',
-  'Education & Mentorship',
   'Health & Wellbeing',
+  'Education & Mentorship',
   'Arts, Culture & Media',
   'Technology & Innovation',
   'Business, Leadership & Management',

@@ -6,8 +6,8 @@ import type { Category } from '../types';
 const CATEGORIES: Category[] = [
   'Sustainability & Environment',
   'Community & Social Impact',
-  'Education & Mentorship',
   'Health & Wellbeing',
+  'Education & Mentorship',
   'Arts, Culture & Media',
   'Technology & Innovation',
   'Business, Leadership & Management',

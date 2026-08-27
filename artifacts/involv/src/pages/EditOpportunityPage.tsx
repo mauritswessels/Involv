@@ -8,8 +8,8 @@ import type { Opportunity } from '../types';
 const CATEGORIES = [
   'Sustainability & Environment',
   'Community & Social Impact',
-  'Education & Mentorship',
   'Health & Wellbeing',
+  'Education & Mentorship',
   'Arts, Culture & Media',
   'Technology & Innovation',
   'Business, Leadership & Management',
