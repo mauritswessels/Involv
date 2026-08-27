@@ -243,17 +243,22 @@ export default function LandingPage() {
       </section>
 
       {/* ── Categories ───────────────────────────────────────────────────────── */}
-      <section className="py-14">
+      <section className="py-16 bg-white border-y border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-4 mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Browse by category</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Find something that matches what you care about.</p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="hidden sm:inline text-xs text-slate-400 tabular-nums">
+          <div className="flex flex-col items-center text-center mb-8">
+            <img src="/favicon.png" alt="" aria-hidden="true" className="h-12 w-12 mb-4" />
+            <p className="text-xs font-semibold text-blue-900 uppercase tracking-[0.18em] mb-2">Start with what matters</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Find your way to make an impact.</h2>
+            <p className="text-sm text-slate-500 mt-2 max-w-md">Choose a direction and discover opportunities built around the things you care about.</p>
+          </div>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-900">Explore categories</span>
+              <span className="text-xs text-slate-400 tabular-nums">
                 {String(categoryPage + 1).padStart(2, '0')} / {String(categoryPages).padStart(2, '0')}
               </span>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -276,7 +281,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {visibleCategories.map(cat => {
               const Icon = cat.icon;
               const count = mockOpportunities.filter(o => o.category === cat.name).length;
@@ -284,12 +289,15 @@ export default function LandingPage() {
                 <Link
                   key={cat.name}
                   to={`/browse?category=${encodeURIComponent(cat.name)}`}
-                  className={`flex items-center gap-3 border rounded-xl px-4 py-3.5 transition-all ${cat.color}`}
+                  className={`group relative min-h-[128px] flex flex-col justify-between overflow-hidden rounded-md px-5 py-5 transition-all hover:-translate-y-0.5 hover:shadow-md ${cat.color}`}
                 >
-                  <Icon size={15} className="shrink-0" />
+                  <div className="flex items-start justify-between gap-3">
+                    <Icon size={23} strokeWidth={1.8} className="shrink-0 opacity-80" />
+                    <ArrowRightIcon size={17} className="opacity-45 transition-transform group-hover:translate-x-1 group-hover:opacity-100" />
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold leading-snug">{cat.name}</p>
-                    <p className="text-xs opacity-60 mt-0.5">{count} {count === 1 ? 'listing' : 'listings'}</p>
+                    <p className="text-sm font-bold leading-snug">{cat.name}</p>
+                    <p className="text-xs opacity-65 mt-1">{count} {count === 1 ? 'listing' : 'listings'}</p>
                   </div>
                 </Link>
               );
