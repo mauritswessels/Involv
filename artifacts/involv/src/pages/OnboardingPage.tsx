@@ -8,15 +8,15 @@ type Step = 'interests' | 'skills' | 'availability' | 'details';
 const STEPS: Step[] = ['interests', 'skills', 'availability', 'details'];
 
 const CATEGORIES: Category[] = [
-  'Sustainability & Environment',
-  'Community & Social Impact',
   'Health & Wellbeing',
   'Education & Mentorship',
+  'School-Based Service',
+  'Community & Social Impact',
+  'Global & Humanitarian',
+  'Sustainability & Environment',
   'Arts, Culture & Media',
   'Technology & Innovation',
   'Business, Leadership & Management',
-  'Global & Humanitarian',
-  'School-Based Service',
 ];
 
 const CATEGORY_ICONS: Record<string, string> = {

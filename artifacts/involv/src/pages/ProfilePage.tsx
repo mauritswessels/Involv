@@ -4,15 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import type { Category } from '../types';
 
 const CATEGORIES: Category[] = [
-  'Sustainability & Environment',
-  'Community & Social Impact',
   'Health & Wellbeing',
   'Education & Mentorship',
+  'School-Based Service',
+  'Community & Social Impact',
+  'Global & Humanitarian',
+  'Sustainability & Environment',
   'Arts, Culture & Media',
   'Technology & Innovation',
   'Business, Leadership & Management',
-  'Global & Humanitarian',
-  'School-Based Service',
 ];
 
 const INTEREST_OPTIONS = [

@@ -6,15 +6,15 @@ import { getOrganizerOpportunities, updateOpportunity, setOpportunityStatus } fr
 import type { Opportunity } from '../types';
 
 const CATEGORIES = [
-  'Sustainability & Environment',
-  'Community & Social Impact',
   'Health & Wellbeing',
   'Education & Mentorship',
+  'School-Based Service',
+  'Community & Social Impact',
+  'Global & Humanitarian',
+  'Sustainability & Environment',
   'Arts, Culture & Media',
   'Technology & Innovation',
   'Business, Leadership & Management',
-  'Global & Humanitarian',
-  'School-Based Service',
 ];
 
 const SKILLS_OPTIONS = [

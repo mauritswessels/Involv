@@ -9,15 +9,15 @@ import { useOpportunities } from '../hooks/useOpportunities';
 import type { FilterState, Category, LocationType, DurationType, SkillLevel, ImpactType, Opportunity } from '../types';
 
 const CATEGORIES: Category[] = [
-  'Sustainability & Environment',
-  'Community & Social Impact',
   'Health & Wellbeing',
   'Education & Mentorship',
+  'School-Based Service',
+  'Community & Social Impact',
+  'Global & Humanitarian',
+  'Sustainability & Environment',
   'Arts, Culture & Media',
   'Technology & Innovation',
   'Business, Leadership & Management',
-  'Global & Humanitarian',
-  'School-Based Service',
 ];
 
 const LOCATION_TYPES: LocationType[] = ['On-campus', 'Off-campus', 'Remote'];
