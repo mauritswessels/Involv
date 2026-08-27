@@ -29,7 +29,6 @@ function rowToOpportunity(row: OpportunityRow): Opportunity {
     applicationDeadline: row.application_deadline,
     startDate: row.start_date ?? '',
     skillsGained: row.skills_gained,
-    cvRelevance: row.cv_relevance,
     impactDescription: row.impact_description,
     tags: row.tags,
     featured: row.featured,
@@ -85,7 +84,6 @@ export async function createOpportunity(
     applicationDeadline: string;
     startDate: string;
     skillsGained: string[];
-    cvRelevance: string;
     impactDescription: string;
     tags: string[];
   },
@@ -114,7 +112,6 @@ export async function createOpportunity(
       application_deadline: opp.applicationDeadline,
       start_date: opp.startDate || null,
       skills_gained: opp.skillsGained,
-      cv_relevance: opp.cvRelevance,
       impact_description: opp.impactDescription,
       tags: opp.tags,
     })
@@ -148,7 +145,6 @@ export async function updateOpportunity(
     applicationDeadline?: string;
     startDate?: string;
     skillsGained?: string[];
-    cvRelevance?: string;
     impactDescription?: string;
   },
 ): Promise<void> {
@@ -173,7 +169,6 @@ export async function updateOpportunity(
   if (updates.applicationDeadline !== undefined) dbUpdates.application_deadline = updates.applicationDeadline;
   if (updates.startDate !== undefined) dbUpdates.start_date = updates.startDate || null;
   if (updates.skillsGained !== undefined) dbUpdates.skills_gained = updates.skillsGained;
-  if (updates.cvRelevance !== undefined) dbUpdates.cv_relevance = updates.cvRelevance;
   if (updates.impactDescription !== undefined) dbUpdates.impact_description = updates.impactDescription;
 
   const { error } = await supabase.from('opportunities').update(dbUpdates).eq('id', id);

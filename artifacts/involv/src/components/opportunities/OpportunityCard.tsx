@@ -77,7 +77,6 @@ export default function OpportunityCard({ opportunity, onApply, compact = false 
       <div className="flex flex-wrap gap-1.5">
         <Pill label={opportunity.durationType} />
         <Pill label={opportunity.skillLevel} />
-        {opportunity.cvRelevance && <Pill label="CV relevant" variant="blue" />}
       </div>
 
       {!compact && (

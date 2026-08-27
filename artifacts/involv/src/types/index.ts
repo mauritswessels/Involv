@@ -60,7 +60,6 @@ export interface Opportunity {
   applicationDeadline: string;
   startDate: string;
   skillsGained: string[];
-  cvRelevance: string;
   impactDescription: string;
   tags: string[];
   featured: boolean;
@@ -92,7 +91,6 @@ export interface FilterState {
   durationType: DurationType | '';
   skillLevel: SkillLevel | '';
   impactType: ImpactType | '';
-  cvRelevant: boolean;
   sortBy: SortOption;
 }
 

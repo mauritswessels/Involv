@@ -29,7 +29,6 @@ No prior experience is necessary — just wear comfortable clothes and bring stu
     applicationDeadline: '2026-05-28',
     startDate: '2026-06-01',
     skillsGained: ['Environmental stewardship', 'Teamwork', 'Community coordination'],
-    cvRelevance: 'Community service, environmental initiative',
     impactDescription:
       'Each session removes approximately 50 kg of litter and helps maintain over 2 hectares of green space.',
     tags: ['environment', 'outdoor', 'community', 'monthly', 'no-experience'],
@@ -65,7 +64,6 @@ This role demonstrates subject mastery and academic leadership — both qualitie
     applicationDeadline: '2026-06-05',
     startDate: '2026-06-10',
     skillsGained: ['Teaching', 'Communication', 'Subject mastery', 'Leadership'],
-    cvRelevance: 'Tutoring, academic leadership, mentoring',
     impactDescription:
       'Last term, peer tutors helped improve average Maths grades by 8% among supported students.',
     tags: ['tutoring', 'academic', 'maths', 'science', 'leadership'],
@@ -101,7 +99,6 @@ Previous volunteers consistently cite this event as one of the most rewarding an
     applicationDeadline: '2026-06-20',
     startDate: '2026-07-18',
     skillsGained: ['Event management', 'Teamwork', 'Public relations', 'Logistics'],
-    cvRelevance: 'Event coordination, fundraising, community service',
     impactDescription: "Last year's gala raised $18,400 for three local community organisations.",
     tags: ['fundraising', 'event', 'community', 'gala', 'one-time'],
     featured: true,
@@ -136,7 +133,6 @@ Please note this is a genuine commitment. Consistent attendance matters greatly 
     applicationDeadline: '2026-05-30',
     startDate: '2026-06-04',
     skillsGained: ['Empathy', 'Communication', 'Healthcare insight', 'Patience'],
-    cvRelevance: 'Healthcare, social work, community service',
     impactDescription:
       'Regular social visits reduce symptoms of depression in care home residents by up to 30%, according to NHS research.',
     tags: ['elderly', 'care', 'healthcare', 'weekly', 'compassion'],
@@ -172,7 +168,6 @@ This is a fun, high-energy day requiring good organisation and a positive attitu
     applicationDeadline: '2026-05-25',
     startDate: '2026-06-05',
     skillsGained: ['Event logistics', 'Teamwork', 'Time management'],
-    cvRelevance: 'School event volunteering, sports administration',
     impactDescription:
       'Sports Day celebrates the achievements of over 600 students across all year groups.',
     tags: ['sports', 'school', 'one-day', 'active', 'logistics'],
@@ -213,7 +208,6 @@ This is an excellent project for a design portfolio and demonstrates initiative 
       'Campaign planning',
       'Creative direction',
     ],
-    cvRelevance: 'Marketing, design, communications, mental health advocacy',
     impactDescription:
       "Last year's campaign reached over 1,200 students and was shared in the school newsletter and community noticeboard.",
     tags: ['design', 'social media', 'mental health', 'remote', 'creative'],
@@ -254,7 +248,6 @@ A professional web developer (parent volunteer) is available as a mentor. This i
       'Project management',
       'UI/UX thinking',
     ],
-    cvRelevance: 'Web development, real-world project, nonprofit tech',
     impactDescription:
       'A modernised website is projected to increase monthly donations by 20–35% based on comparable nonprofit case studies.',
     tags: ['tech', 'web', 'nonprofit', 'remote', 'portfolio'],
@@ -295,7 +288,6 @@ Safeguarding training and a Working with Children check are required before begi
       'Empathy',
       'Social awareness',
     ],
-    cvRelevance: 'Humanitarian service, social work, international development',
     impactDescription:
       'Last cohort supported 18 refugee students, all of whom successfully transitioned into mainstream schooling.',
     tags: ['refugees', 'humanitarian', 'tutoring', 'weekly', 'social justice'],
@@ -341,7 +333,6 @@ Previous committee members consistently rate this as one of the most formative l
       'Stakeholder management',
       'Professional communication',
     ],
-    cvRelevance: 'Leadership, event management, organisational skills',
     impactDescription:
       'The forum engages over 300 student leaders and shapes student governance across 12 regional schools.',
     tags: ['leadership', 'SRC', 'event planning', 'advanced', 'committee'],
@@ -377,7 +368,6 @@ This programme is consistently rated as one of the most rewarding by participati
     applicationDeadline: '2026-06-03',
     startDate: '2026-06-13',
     skillsGained: ['Teaching', 'Patience', 'Communication', 'Child development awareness'],
-    cvRelevance: 'Education, tutoring, community service',
     impactDescription:
       '78% of paired students showed measurable improvement in reading fluency after one term.',
     tags: ['reading', 'primary school', 'literacy', 'weekly', 'teaching'],
@@ -413,7 +403,6 @@ This project feeds directly into the school's sustainability goals and will be d
     applicationDeadline: '2026-05-26',
     startDate: '2026-06-02',
     skillsGained: ['Gardening', 'Sustainability', 'Environmental science', 'Teamwork'],
-    cvRelevance: 'Sustainability, environmental stewardship',
     impactDescription:
       'Expected to produce 30–40 kg of fresh produce per term, reducing canteen costs and food waste.',
     tags: ['gardening', 'sustainability', 'school', 'weekly', 'environment'],
@@ -449,7 +438,6 @@ This is a portfolio-quality project that combines creative skills with meaningfu
     applicationDeadline: '2026-06-07',
     startDate: '2026-06-14',
     skillsGained: ['Photography', 'Curation', 'Exhibition design', 'Storytelling'],
-    cvRelevance: 'Arts, creative media, cultural awareness, communications',
     impactDescription:
       "Last year's cultural exhibition was attended by over 400 community members and received local media coverage.",
     tags: ['arts', 'photography', 'cultural', 'exhibition', 'creative'],

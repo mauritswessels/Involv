@@ -69,7 +69,6 @@ export default function EditOpportunityPage() {
     applicationDeadline: '',
     startDate: '',
     skillsGained: [] as string[],
-    cvRelevance: '',
     impactDescription: '',
     organizerName: '',
     organizerRole: '',
@@ -102,7 +101,6 @@ export default function EditOpportunityPage() {
             applicationDeadline: opp.applicationDeadline,
             startDate: opp.startDate ?? '',
             skillsGained: opp.skillsGained,
-            cvRelevance: opp.cvRelevance,
             impactDescription: opp.impactDescription,
             organizerName: opp.organizerName,
             organizerRole: opp.organizerRole,
@@ -152,7 +150,6 @@ export default function EditOpportunityPage() {
         applicationDeadline: form.applicationDeadline,
         startDate: form.startDate,
         skillsGained: form.skillsGained,
-        cvRelevance: form.cvRelevance,
         impactDescription: form.impactDescription,
       });
       setSaved(true);
@@ -383,10 +380,6 @@ export default function EditOpportunityPage() {
                   </button>
                 ))}
               </div>
-            </div>
-            <div>
-              <label className="label-base">CV relevance note</label>
-              <input type="text" value={form.cvRelevance} onChange={e => set('cvRelevance', e.target.value)} className="input-base" />
             </div>
             <div>
               <label className="label-base">Impact description</label>

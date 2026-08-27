@@ -128,7 +128,6 @@ export default function OpportunityDetailPage() {
                 <Pill label={opportunity.durationType} />
                 <Pill label={opportunity.skillLevel} />
                 <Pill label={opportunity.impactType + ' impact'} />
-                {opportunity.cvRelevance && <Pill label="CV relevant" variant="blue" />}
               </div>
             </div>
 
@@ -158,12 +157,6 @@ export default function OpportunityDetailPage() {
                     </div>
                   ))}
                 </div>
-                {opportunity.cvRelevance && (
-                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
-                    <p className="text-xs font-semibold text-blue-900 mb-0.5">CV relevance</p>
-                    <p className="text-xs text-blue-800">{opportunity.cvRelevance}</p>
-                  </div>
-                )}
               </div>
             )}
 

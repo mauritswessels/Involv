@@ -37,7 +37,6 @@ async function seedOpportunities(): Promise<void> {
     application_deadline: o.applicationDeadline,
     start_date: o.startDate || null,
     skills_gained: o.skillsGained,
-    cv_relevance: o.cvRelevance,
     impact_description: o.impactDescription,
     tags: o.tags,
     featured: o.featured,

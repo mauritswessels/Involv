@@ -52,7 +52,6 @@ function rowToOpportunity(row: OpportunityRow): Opportunity {
     applicationDeadline: row.application_deadline,
     startDate: row.start_date ?? '',
     skillsGained: row.skills_gained,
-    cvRelevance: row.cv_relevance,
     impactDescription: row.impact_description,
     tags: row.tags,
     featured: row.featured,

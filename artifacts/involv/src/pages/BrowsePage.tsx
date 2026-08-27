@@ -32,7 +32,6 @@ const defaultFilters: FilterState = {
   durationType: '',
   skillLevel: '',
   impactType: '',
-  cvRelevant: false,
   sortBy: 'newest',
 };
 
@@ -97,10 +96,6 @@ export default function BrowsePage() {
     if (filters.impactType) {
       list = list.filter(o => o.impactType === filters.impactType);
     }
-    if (filters.cvRelevant) {
-      list = list.filter(o => !!o.cvRelevance);
-    }
-
     switch (filters.sortBy) {
       case 'deadline':
         list.sort((a, b) => new Date(a.applicationDeadline).getTime() - new Date(b.applicationDeadline).getTime());
@@ -121,8 +116,7 @@ export default function BrowsePage() {
     (filters.locationType ? 1 : 0) +
     (filters.durationType ? 1 : 0) +
     (filters.skillLevel ? 1 : 0) +
-    (filters.impactType ? 1 : 0) +
-    (filters.cvRelevant ? 1 : 0);
+    (filters.impactType ? 1 : 0);
 
   const clearFilters = () =>
     setFilters(f => ({ ...defaultFilters, search: f.search }));
@@ -264,17 +258,6 @@ export default function BrowsePage() {
         </div>
       </FilterSection>
 
-      <FilterSection label="Other">
-        <label className="flex items-center gap-2.5 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={filters.cvRelevant}
-            onChange={e => setFilters(f => ({ ...f, cvRelevant: e.target.checked }))}
-            className="w-3.5 h-3.5 rounded border-slate-300 text-blue-900 accent-blue-900"
-          />
-          <span className="text-xs text-slate-700 group-hover:text-slate-900">CV relevant only</span>
-        </label>
-      </FilterSection>
     </div>
   );
 
@@ -362,14 +345,6 @@ export default function BrowsePage() {
                   className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 border border-blue-200 rounded-full px-2.5 py-0.5 font-medium hover:bg-blue-100"
                 >
                   {filters.skillLevel} <XIcon size={10} />
-                </button>
-              )}
-              {filters.cvRelevant && (
-                <button
-                  onClick={() => setFilters(f => ({ ...f, cvRelevant: false }))}
-                  className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 border border-blue-200 rounded-full px-2.5 py-0.5 font-medium hover:bg-blue-100"
-                >
-                  CV relevant <XIcon size={10} />
                 </button>
               )}
               <button onClick={clearFilters} className="text-xs text-slate-500 hover:text-slate-700 px-1.5 py-0.5">

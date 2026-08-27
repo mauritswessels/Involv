@@ -66,7 +66,6 @@ export default function CreateOpportunityPage() {
     applicationDeadline: '',   // always clear — new listing, new deadline
     startDate: '',
     skillsGained: duplicate?.skillsGained ?? [] as string[],
-    cvRelevance: duplicate?.cvRelevance ?? '',
     impactDescription: duplicate?.impactDescription ?? '',
     organizerName: duplicate?.organizerName ?? user?.name ?? '',
     organizerRole: duplicate?.organizerRole ?? '',
@@ -111,7 +110,6 @@ export default function CreateOpportunityPage() {
         applicationDeadline: form.applicationDeadline,
         startDate: form.startDate,
         skillsGained: form.skillsGained,
-        cvRelevance: form.cvRelevance,
         impactDescription: form.impactDescription,
         tags: [],
       });
@@ -372,19 +370,6 @@ export default function CreateOpportunityPage() {
                   </button>
                 ))}
               </div>
-            </div>
-            <div>
-              <label className="label-base">CV relevance note</label>
-              <input
-                type="text"
-                value={form.cvRelevance}
-                onChange={e => set('cvRelevance', e.target.value)}
-                placeholder="e.g. Teaching, academic leadership, mentoring"
-                className="input-base"
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                Shown as a "CV relevant" badge on the browse card if filled in.
-              </p>
             </div>
             <div>
               <label className="label-base">Impact description</label>
