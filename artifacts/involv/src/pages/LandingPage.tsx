@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   BookOpenIcon,
   CheckCircleIcon,
   GlobeIcon,
@@ -151,10 +153,13 @@ function StatCounter({ value, suffix = '', label }: { value: number; suffix?: st
 export default function LandingPage() {
   const [search, setSearch] = useState('');
   const [applyTarget, setApplyTarget] = useState<Opportunity | null>(null);
+  const [categoryPage, setCategoryPage] = useState(0);
   const navigate = useNavigate();
   const { stats } = useStats();
 
   const featured = mockOpportunities.filter(o => o.featured).slice(0, 3);
+  const categoryPages = Math.ceil(CATEGORIES.length / 3);
+  const visibleCategories = CATEGORIES.slice(categoryPage * 3, categoryPage * 3 + 3);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,17 +245,39 @@ export default function LandingPage() {
       {/* ── Categories ───────────────────────────────────────────────────────── */}
       <section className="py-14">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-baseline justify-between mb-6">
+          <div className="flex items-end justify-between gap-4 mb-6">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Browse by category</h2>
               <p className="text-sm text-slate-500 mt-0.5">Find something that matches what you care about.</p>
             </div>
-            <Link to="/browse" className="text-xs text-blue-900 font-medium hover:underline flex items-center gap-1">
-              See all <ArrowRightIcon size={12} />
-            </Link>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="hidden sm:inline text-xs text-slate-400 tabular-nums">
+                {String(categoryPage + 1).padStart(2, '0')} / {String(categoryPages).padStart(2, '0')}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCategoryPage(page => Math.max(0, page - 1))}
+                  disabled={categoryPage === 0}
+                  aria-label="Previous categories"
+                  className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-600 flex items-center justify-center transition hover:border-blue-300 hover:text-blue-900 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  <ChevronLeftIcon size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCategoryPage(page => Math.min(categoryPages - 1, page + 1))}
+                  disabled={categoryPage === categoryPages - 1}
+                  aria-label="Next categories"
+                  className="w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-600 flex items-center justify-center transition hover:border-blue-300 hover:text-blue-900 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  <ChevronRightIcon size={15} />
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {CATEGORIES.map(cat => {
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {visibleCategories.map(cat => {
               const Icon = cat.icon;
               const count = mockOpportunities.filter(o => o.category === cat.name).length;
               return (
@@ -267,6 +294,24 @@ export default function LandingPage() {
                 </Link>
               );
             })}
+          </div>
+          <div className="flex items-center justify-between mt-5">
+            <div className="flex items-center gap-1.5" aria-label="Category pages">
+              {Array.from({ length: categoryPages }).map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setCategoryPage(index)}
+                  aria-label={`Show category page ${index + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${
+                    categoryPage === index ? 'w-6 bg-blue-900' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
+                  }`}
+                />
+              ))}
+            </div>
+            <Link to="/browse" className="text-xs text-blue-900 font-medium hover:underline flex items-center gap-1">
+              See all <ArrowRightIcon size={12} />
+            </Link>
           </div>
         </div>
       </section>
