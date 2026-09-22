@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/involv-school-presentation/"
+title = "Involv School Presentation"
+description = "A professional school-facing presentation introducing Involv, a student-first service-learning platform, its user journeys, school value, and a sustainable pilot model."
+version = "1.0.0"
+id = "artifacts/involv-school-presentation"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/involv-school-presentation/" ]
+localPort = 25898
+
+[services.development]
+run = "pnpm --filter @workspace/involv-school-presentation run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/involv-school-presentation", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/involv-school-presentation/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25898"
+BASE_PATH = "/involv-school-presentation/"
