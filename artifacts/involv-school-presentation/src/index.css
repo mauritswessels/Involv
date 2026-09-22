@@ -11,14 +11,16 @@
 }
 
 :root {
-  /* Replace these with brand colors */
-  --slide-primary: #4f46e5;
-  --slide-accent: #06b6d4;
-  --slide-bg: #f8fafc;
-  --slide-text: #0f172a;
-  --slide-muted: #64748b;
-  --font-display-family: 'Inter', system-ui, sans-serif;
-  --font-body-family: 'Inter', system-ui, sans-serif;
+  --slide-primary: #0b2b63;
+  --slide-accent: #2f5bb7;
+  --slide-bg: #f7f9fc;
+  --slide-text: #111827;
+  --slide-muted: #5d6b80;
+  --slide-surface: #ffffff;
+  --slide-line: #dbe3ef;
+  --slide-soft-blue: #eaf0fb;
+  --font-display-family: 'Manrope', sans-serif;
+  --font-body-family: 'DM Sans', sans-serif;
   color-scheme: light;
 }
 
@@ -33,6 +35,7 @@ body,
 body {
   background: var(--slide-bg);
   color: var(--slide-text);
+  font-family: var(--font-body-family);
 }
 
 .slide {

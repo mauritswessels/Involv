@@ -1,1 +1,82 @@
-[]
+[
+  {
+    "id": "49b24182-5f24-4f9d-b3a2-6fbfd9a26501",
+    "position": 1,
+    "filepath": "src/pages/slides/Slide01Cover.tsx",
+    "title": "Involv",
+    "description": "A clearer way to organise service learning.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "6f2c0ed2-f38c-45d0-9ca9-47180edc3a02",
+    "position": 2,
+    "filepath": "src/pages/slides/Slide02Problem.tsx",
+    "title": "Service learning should be easier to find — and easier to run",
+    "description": "The coordination problem Involv is designed to address.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "b8c035fb-40f7-4d5f-bfab-0cd6ae9b9c03",
+    "position": 3,
+    "filepath": "src/pages/slides/Slide03Journey.tsx",
+    "title": "One place for the whole journey",
+    "description": "The end-to-end student and organiser journey.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "d2e07d43-fb14-4b1a-9b46-04b137ced204",
+    "position": 4,
+    "filepath": "src/pages/slides/Slide04StudentJourney.tsx",
+    "title": "From interest to participation",
+    "description": "How students discover and apply for opportunities.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "42a8a6d6-ceb0-47be-9949-9b4519ccdd05",
+    "position": 5,
+    "filepath": "src/pages/slides/Slide05Organizer.tsx",
+    "title": "Less admin. More visibility.",
+    "description": "The workflow for teachers and student organisers.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "7bbfc22f-acf1-4693-8d9d-f21931b56406",
+    "position": 6,
+    "filepath": "src/pages/slides/Slide06Categories.tsx",
+    "title": "Built around what matters to students",
+    "description": "The nine service-learning categories.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "8a3840ae-d3fc-44d8-b756-a9d3079b7d07",
+    "position": 7,
+    "filepath": "src/pages/slides/Slide07SchoolGains.tsx",
+    "title": "What the school gains",
+    "description": "The practical benefits for the school community.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "90dc9cfe-c7a6-47c5-a4c6-cfb02b40aa08",
+    "position": 8,
+    "filepath": "src/pages/slides/Slide08Funding.tsx",
+    "title": "How Involv can be sustained",
+    "description": "Potential pilot funding and long-term sustainability.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a3ae799a-89d0-4efa-8c87-a4c13e8edf09",
+    "position": 9,
+    "filepath": "src/pages/slides/Slide09Experience.tsx",
+    "title": "The experience is designed to feel simple",
+    "description": "The product's visual and interaction principles.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f8ef6ad1-e121-4f73-8b1f-321567d05510",
+    "position": 10,
+    "filepath": "src/pages/slides/Slide10NextSteps.tsx",
+    "title": "What we need to move forward",
+    "description": "A concrete path toward a funded first pilot.",
+    "speakerNotes": ""
+  }
+]
