@@ -1,3 +1,4 @@
 - [Involv preview connectivity](involv-preview.md) — public pages stay usable before Supabase is connected; remote features activate when configured.
 - [Involv content principles](involv-content-principles.md) — treat every meaningful service-learning opportunity as valuable; avoid CV-quality labels.
+- [Direct Supabase authorization](supabase-authorization.md) — enforce roles and ownership in the database; avoid recursive same-table RLS checks.
 - [Presentation separation](presentation-separation.md) — keep school presentation work isolated from the Involv website and deliver it as a separate artifact.
