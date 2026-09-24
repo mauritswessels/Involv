@@ -4,6 +4,9 @@ Use this checklist before giving a school-wide group access to Involv. Productio
 changes should be performed against the intended Supabase project only after the
 project URL, migration history, and backup status are confirmed.
 
+For the FlorenceHSB school review draft, see
+[`FLORENCEHSB_SCHOOL_LAUNCH_REVIEW_PACK.md`](./FLORENCEHSB_SCHOOL_LAUNCH_REVIEW_PACK.md).
+
 ## 1. Database indexes
 
 The launch migrations add performance indexes and authorization safeguards:
