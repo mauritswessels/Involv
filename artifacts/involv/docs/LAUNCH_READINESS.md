@@ -24,8 +24,27 @@ Do not run an index migration against an unidentified remote database.
 
 ## 2. Row Level Security
 
-Run `supabase/tests/launch_security_checks.sql` against staging, then production.
-The script fails if RLS is disabled or a protected table has no policies.
+Run the staging-only role behavior suite:
+
+Provide `SUPABASE_STAGING_PROJECT_REF` and `SUPABASE_DB_URL` through a secure
+environment-variable mechanism, then run:
+
+```sh
+SUPABASE_TEST_ENV=staging pnpm --filter @workspace/involv test:security
+```
+
+The database URL is a credential: do not commit it or print it in logs. The
+runner requires the staging marker and a project reference, verifies that a
+direct Supabase database host or pooler user matches that reference, and refuses
+other hosts. Do not set the staging reference to the production project.
+
+The SQL suite first audits the required RLS policies and guards, then creates
+temporary student, organizer, and admin fixture identities in `auth.users`.
+Those fixtures have no passwords, exist only inside the test transaction, and
+are removed by its final rollback. The suite impersonates authenticated JWT
+subjects to test role escalation, opportunity ownership, application ownership,
+organizer status updates, and forbidden application-text and identity edits.
+Do not run the behavior suite against production.
 
 Expected access model:
 
@@ -39,13 +58,16 @@ Expected access model:
 Also verify the Google OAuth redirect URLs and ensure no service-role key is
 present in frontend environment variables or browser bundles.
 
-In staging, use separate student, organizer, and admin test accounts to confirm:
+The automated checks cover these staging behaviors:
 
-- a student cannot create or update an admin role;
-- an organizer can change application status but cannot rewrite the student's
-  motivation, experience, availability, identity, or opportunity;
-- an admin can change a user's role without a recursive-policy error;
-- a user cannot create an opportunity or application owned by another user.
+- a student cannot insert an admin profile or escalate their own role;
+- an admin can change another user's role without a recursive-policy error;
+- organizers can create and update their own opportunities, but cannot forge or
+  transfer opportunity ownership;
+- students can create applications only for themselves and cannot forge the
+  opportunity's organizer or read another student's application;
+- an organizer can change application status only for their opportunity, and
+  cannot edit motivation, experience, availability, grade, or applicant identity.
 
 ## 3. Rate limits and request safety
 
