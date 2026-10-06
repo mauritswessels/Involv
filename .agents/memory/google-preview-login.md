@@ -8,3 +8,9 @@ Google OAuth sign-in must run in a top-level browser page, not inside the embedd
 **Why:** The same Supabase-generated Google authorization request returned a normal sign-in page when sent as a document navigation, but Google's generic “403 … you do not have access to this page” when sent as an iframe navigation. That message alone is not evidence of a missing test user or an incorrect OAuth audience.
 
 **How to apply:** When this error appears, check whether sign-in is embedded before changing Google Cloud configuration. Open embedded sign-in in a top-level tab synchronously from the user's click, handle blocked pop-ups explicitly, and preserve normal top-level navigation. A working provider sign-in page does not establish that account consent and callback/session creation have completed.
+
+Hosted Supabase return-URL settings must also match the website being used. Local Supabase CLI configuration does not change the hosted project's settings.
+
+**Why:** After the iframe issue was fixed, the hosted callback fallback still pointed to localhost. The user confirmed sign-in worked after being guided to correct the hosted Site URL and redirect allowlist.
+
+**How to apply:** For a localhost connection error after Google login, inspect the hosted return configuration before changing frontend code. Allow the exact preview login URL when testing; use the published website as the production Site URL. Keep Google's authorized Supabase callback distinct from the website's return URL.
