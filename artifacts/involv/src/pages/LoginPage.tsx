@@ -1,39 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckIcon, AlertCircleIcon } from 'lucide-react';
+import { AlertCircleIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import type { UserRole } from '../types';
 
-type Step = 'signin' | 'role';
-
-const ROLES: { value: UserRole; label: string; description: string }[] = [
-  {
-    value: 'student',
-    label: 'Student',
-    description:
-      'Browse and apply for service-learning opportunities, track applications, and build your profile.',
-  },
-  {
-    value: 'teacher',
-    label: 'Teacher',
-    description:
-      'Post opportunities on behalf of your department or class and manage student applications.',
-  },
-  {
-    value: 'organizer',
-    label: 'Student organiser',
-    description:
-      'Post and manage opportunities for your club, society, or student-led initiative.',
-  },
-];
+type Step = 'signin' | 'setup';
 
 export default function LoginPage() {
   const [step, setStep] = useState<Step>('signin');
-  const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { user, needsOnboarding, signInWithGoogle, completeOnboarding } = useAuth();
+  const { user, needsOnboarding, authError, signInWithGoogle, completeOnboarding } = useAuth();
   const navigate = useNavigate();
 
   // Existing user — redirect to onboarding if first time student, else to dashboard
@@ -42,19 +19,32 @@ export default function LoginPage() {
       if (user.role === 'student' && !user.onboardingComplete) {
         navigate('/onboarding', { replace: true });
       } else {
-        const dest = user.role === 'student' ? '/dashboard' : '/organizer';
+        const dest = user.role === 'admin' ? '/admin' : user.role === 'student' ? '/dashboard' : '/organizer';
         navigate(dest, { replace: true });
       }
     }
   }, [user, navigate]);
 
-  // New user — Supabase session exists but no profile row yet → show role picker
+  // New verified school member — create a student account, never self-select privileges.
   useEffect(() => {
-    if (needsOnboarding) {
-      setStep('role');
-      setLoading(false); // in case we were spinning during the OAuth redirect
-    }
+    setStep(needsOnboarding ? 'setup' : 'signin');
+    setLoading(false);
   }, [needsOnboarding]);
+
+  // Supabase returns signup-hook denials via the OAuth callback URL.
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    if (search.has('error') || hash.has('error')) {
+      setError(search.get('error_description') || hash.get('error_description') || 'Google sign-in was not completed. Please use your @iszl.ch account.');
+      for (const key of ['error', 'error_description', 'error_code']) {
+        search.delete(key);
+        hash.delete(key);
+      }
+      window.history.replaceState(null, '', `${window.location.pathname}${search.size ? `?${search}` : ''}${hash.size ? `#${hash}` : ''}`);
+    }
+  }, []);
+  const displayedError = error || authError;
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -75,10 +65,10 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      await completeOnboarding(selectedRole);
+      await completeOnboarding();
       // user effect above fires once profile is created and navigates
-    } catch {
-      setError('Failed to save your role. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create your school account. Please try again.');
       setLoading(false);
     }
   };
@@ -108,14 +98,14 @@ export default function LoginPage() {
               <div className="text-center mb-7">
                 <h1 className="text-lg font-bold text-slate-900 mb-1">Sign in to Involv</h1>
                 <p className="text-sm text-slate-600">
-                  Use your school Google account to continue.
+                  Use your ISZL Google account (@iszl.ch) to continue.
                 </p>
               </div>
 
-              {error && (
-                <div className="mb-4 flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+              {displayedError && (
+                <div role="alert" className="mb-4 flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
                   <AlertCircleIcon size={14} className="shrink-0" />
-                  {error}
+                  {displayedError}
                 </div>
               )}
 
@@ -141,53 +131,35 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* ── Step 2: Role picker (new users only) ── */}
-          {step === 'role' && (
+          {/* ── Step 2: Student account setup (new school members only) ── */}
+          {step === 'setup' && (
             <div className="card p-8">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-slate-900 mb-1">How will you use Involv?</h2>
+                <h2 className="text-lg font-bold text-slate-900 mb-1">Welcome to Involv</h2>
                 <p className="text-sm text-slate-600">
-                  This helps us show you the right dashboard and features.
+                  Your ISZL account starts with student access.
                 </p>
               </div>
 
-              {error && (
-                <div className="mb-4 flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+              {displayedError && (
+                <div role="alert" className="mb-4 flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
                   <AlertCircleIcon size={14} className="shrink-0" />
-                  {error}
+                  {displayedError}
                 </div>
               )}
 
-              <div className="space-y-2.5 mb-6">
-                {ROLES.map(role => (
-                  <button
-                    key={role.value}
-                    onClick={() => setSelectedRole(role.value)}
-                    className={`w-full text-left border rounded-xl p-4 transition-all ${
-                      selectedRole === role.value
-                        ? 'border-blue-900 bg-blue-50'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-slate-900">{role.label}</span>
-                      {selectedRole === role.value && (
-                        <span className="w-5 h-5 rounded-full bg-blue-900 flex items-center justify-center">
-                          <CheckIcon size={11} className="text-white" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">{role.description}</p>
-                  </button>
-                ))}
-              </div>
+              <p className="text-sm text-slate-600 mb-6">
+                You can browse and apply for opportunities. If you are a teacher or
+                student organiser, ask an Involv administrator to approve your role
+                before you publish or manage opportunities.
+              </p>
 
               <button
                 onClick={handleContinue}
                 disabled={loading}
                 className="btn-primary w-full justify-center py-2.5 disabled:opacity-60"
               >
-                {loading ? 'Setting up your account…' : 'Continue'}
+                {loading ? 'Setting up your account…' : 'Create student account'}
               </button>
             </div>
           )}

@@ -22,6 +22,8 @@ export async function signInWithGoogle(): Promise<void> {
       options: {
         redirectTo: `${window.location.origin}/login`,
         skipBrowserRedirect: embedded,
+        // Google treats this as a hint, not an authorization check.
+        queryParams: { hd: 'iszl.ch', prompt: 'select_account' },
       },
     });
     if (error) throw error;

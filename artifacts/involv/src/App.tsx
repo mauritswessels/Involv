@@ -31,6 +31,12 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function PublisherRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const approved = user && ['teacher', 'organizer', 'admin'].includes(user.role);
+  return <PrivateRoute>{approved ? children : <Navigate to="/dashboard" replace />}</PrivateRoute>;
+}
+
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -63,9 +69,9 @@ function AppRoutes() {
       <Route
         path="/create"
         element={
-          <PrivateRoute>
+          <PublisherRoute>
             <Layout><CreateOpportunityPage /></Layout>
-          </PrivateRoute>
+          </PublisherRoute>
         }
       />
       <Route
@@ -79,17 +85,17 @@ function AppRoutes() {
       <Route
         path="/organizer"
         element={
-          <PrivateRoute>
+          <PublisherRoute>
             <Layout><OrganizerDashboardPage /></Layout>
-          </PrivateRoute>
+          </PublisherRoute>
         }
       />
       <Route
         path="/applications/:opportunityId"
         element={
-          <PrivateRoute>
+          <PublisherRoute>
             <Layout><ApplicationsManagementPage /></Layout>
-          </PrivateRoute>
+          </PublisherRoute>
         }
       />
       <Route
@@ -111,9 +117,9 @@ function AppRoutes() {
       <Route
         path="/edit/:id"
         element={
-          <PrivateRoute>
+          <PublisherRoute>
             <Layout><EditOpportunityPage /></Layout>
-          </PrivateRoute>
+          </PublisherRoute>
         }
       />
 

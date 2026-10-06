@@ -93,12 +93,15 @@ export async function getAllApplicationsAdmin(): Promise<Application[]> {
 }
 
 /** Change a user's role. */
-export async function setUserRole(uid: string, role: UserRole): Promise<void> {
-  const { error } = await supabase
+export async function setUserRole(uid: string, role: UserRole): Promise<User> {
+  const { data, error } = await supabase
     .from('profiles')
     .update({ role })
-    .eq('id', uid);
+    .eq('id', uid)
+    .select('*')
+    .single();
   if (error) throw error;
+  return rowToUser(data);
 }
 
 /** Delete a user's profile (removes their Involv data; Supabase auth account remains). */

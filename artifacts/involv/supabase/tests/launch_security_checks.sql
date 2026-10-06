@@ -86,7 +86,9 @@ BEGIN
   INTO missing_required_policies
   FROM (
     VALUES
-      ('profiles', 'Users can insert own non-admin profile', 'INSERT'),
+      ('profiles', CASE WHEN to_regprocedure('public.is_school_member()') IS NOT NULL
+        THEN 'School members create student profiles'
+        ELSE 'Users can insert own non-admin profile' END, 'INSERT'),
       ('profiles', 'Users can update own profile', 'UPDATE'),
       ('profiles', 'Admins can update any profile', 'UPDATE'),
       ('opportunities', 'Anyone can read active opportunities', 'SELECT'),
@@ -113,8 +115,10 @@ BEGIN
     FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename = 'profiles'
-      AND policyname = 'Users can insert own non-admin profile'
-      AND with_check ILIKE '%role%admin%'
+      AND (
+        (policyname = 'Users can insert own non-admin profile' AND with_check ILIKE '%role%admin%')
+        OR (policyname = 'School members create student profiles' AND with_check ILIKE '%student%')
+      )
   ) THEN
     RAISE EXCEPTION 'Profile insert policy does not guard the admin role';
   END IF;
@@ -247,7 +251,7 @@ SELECT
   fixture.id,
   'authenticated',
   'authenticated',
-  'security-test-' || fixture.id::text || '@example.invalid',
+  'security-test-' || fixture.id::text || '@iszl.ch',
   '',
   now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
@@ -264,11 +268,20 @@ FROM (
     (current_setting('app.involv_security_test.unprofiled_user')::uuid, 'student')
 ) AS fixture(id, user_role);
 
+-- Trusted staging fixture creation only. The enclosing transaction and DDL
+-- lock prevent concurrent writes; the trigger is restored before API-role tests.
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_trigger WHERE tgrelid = 'public.profiles'::regclass
+    AND tgname = 'guard_school_profile_insert') THEN
+    ALTER TABLE public.profiles DISABLE TRIGGER guard_school_profile_insert;
+  END IF;
+END; $$;
+
 INSERT INTO public.profiles (id, name, email, role)
 SELECT
   fixture.id,
   'Security test ' || fixture.user_role,
-  'security-test-' || fixture.id::text || '@example.invalid',
+  'security-test-' || fixture.id::text || '@iszl.ch',
   fixture.user_role
 FROM (
   VALUES
@@ -278,6 +291,13 @@ FROM (
     (current_setting('app.involv_security_test.other_organizer')::uuid, 'organizer'),
     (current_setting('app.involv_security_test.admin')::uuid, 'admin')
 ) AS fixture(id, user_role);
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_trigger WHERE tgrelid = 'public.profiles'::regclass
+    AND tgname = 'guard_school_profile_insert') THEN
+    ALTER TABLE public.profiles ENABLE TRIGGER guard_school_profile_insert;
+  END IF;
+END; $$;
 
 INSERT INTO public.opportunities (
   id, organizer_id, title, category, application_deadline, status

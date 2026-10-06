@@ -36,6 +36,7 @@ import {
   adminSetOpportunityStatus,
 } from '../services/adminService';
 import { useAuth } from '../context/AuthContext';
+import { isSchoolEmail } from '../lib/schoolAccess';
 
 type Tab = 'users' | 'opportunities' | 'applications';
 
@@ -67,6 +68,8 @@ export default function AdminPage() {
   const [applications, setApplications]  = useState<Application[]>([]);
   const [loading, setLoading]            = useState(true);
   const [error, setError]                = useState<string | null>(null);
+  const [changingRole, setChangingRole] = useState<string | null>(null);
+  const [roleNotice, setRoleNotice] = useState<string | null>(null);
 
   // Search / filter
   const [userSearch,   setUserSearch]   = useState('');
@@ -114,9 +117,21 @@ export default function AdminPage() {
 
   // ── User actions ────────────────────────────────────────────
   const handleRoleChange = async (uid: string, role: UserRole) => {
-    setUsers(prev => prev.map(u => (u.id === uid ? { ...u, role } : u)));
-    try { await setUserRole(uid, role); }
-    catch (err) { console.error('[Admin] setUserRole:', err); }
+    const target = users.find(u => u.id === uid);
+    if (!target || uid === me?.id || !isSchoolEmail(target.email)) return;
+    if (role !== 'student' && !window.confirm(`Approve ${target.name} as ${role}? This grants additional platform permissions.`)) return;
+    setChangingRole(uid);
+    setError(null);
+    setRoleNotice(null);
+    try {
+      const updated = await setUserRole(uid, role);
+      setUsers(prev => prev.map(u => u.id === uid ? updated : u));
+      setRoleNotice(`${updated.name} now has ${updated.role} access.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Role approval failed. No change was saved.');
+    } finally {
+      setChangingRole(null);
+    }
   };
 
   const handleDeleteUser = async (uid: string) => {
@@ -203,7 +218,7 @@ export default function AdminPage() {
             <ShieldIcon size={16} className="text-red-600" />
             <h1 className="text-xl font-bold text-slate-900">Admin panel</h1>
           </div>
-          <p className="text-sm text-slate-500">Manage users and opportunities across the platform.</p>
+          <p className="text-sm text-slate-500">Only verified @iszl.ch members can use Involv. New members start as students; approve teacher and organiser roles in the Users tab.</p>
         </div>
       </div>
 
@@ -227,6 +242,7 @@ export default function AdminPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>
         )}
+        {roleNotice && <div role="status" className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800">{roleNotice}</div>}
 
         {/* Tabs */}
         <div className="flex gap-1 border-b border-slate-200">
@@ -302,7 +318,10 @@ export default function AdminPage() {
                           <select
                             value={u.role}
                             onChange={e => handleRoleChange(u.id, e.target.value as UserRole)}
-                            className={`text-xs font-medium px-2 py-1 rounded-lg border-0 cursor-pointer focus:ring-2 focus:ring-blue-500 ${roleColors[u.role]}`}
+                            disabled={changingRole !== null || u.id === me?.id || !isSchoolEmail(u.email)}
+                            aria-label={`Approved role for ${u.name}`}
+                            title={u.id === me?.id ? 'Ask another administrator to change your role.' : !isSchoolEmail(u.email) ? 'Only ISZL accounts are eligible for platform access.' : 'Administrator-approved role'}
+                            className={`text-xs font-medium px-2 py-1 rounded-lg border-0 cursor-pointer disabled:opacity-50 focus:ring-2 focus:ring-blue-500 ${roleColors[u.role]}`}
                           >
                             {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                           </select>

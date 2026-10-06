@@ -3,7 +3,8 @@ import type { Session } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { signInWithGoogle as sbSignIn, signOutUser } from '../services/authService';
 import { getProfileById, createProfile, updateProfile } from '../services/userService';
-import type { User, UserRole } from '../types';
+import { hasSchoolAccess, SCHOOL_ACCESS_MESSAGE } from '../lib/schoolAccess';
+import type { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
@@ -11,8 +12,9 @@ interface AuthContextType {
   loading: boolean;
   /** True when the user has signed in with Google but has no profile yet */
   needsOnboarding: boolean;
+  authError: string | null;
   signInWithGoogle: () => Promise<void>;
-  completeOnboarding: (role: UserRole) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
 }
@@ -24,26 +26,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [pendingSession, setPendingSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Load profile for an authenticated Supabase session
-  async function hydrateProfile(session: Session) {
+  async function hydrateProfile(session: Session, isCurrent: () => boolean) {
+    if (!hasSchoolAccess(session.user)) {
+      if (!isCurrent()) return;
+      setUser(null);
+      setNeedsOnboarding(false);
+      setPendingSession(null);
+      setAuthError(SCHOOL_ACCESS_MESSAGE);
+      await supabase.auth.signOut({ scope: 'local' });
+      return;
+    }
     try {
-      console.log('[Auth] hydrating profile for', session.user.email);
       const profile = await getProfileById(session.user.id);
+      if (!isCurrent()) return;
+      setAuthError(null);
       if (profile) {
-        console.log('[Auth] profile found, role:', profile.role);
         setUser(profile);
         setNeedsOnboarding(false);
         setPendingSession(null);
       } else {
-        console.log('[Auth] no profile found — showing role picker');
-        // Signed in via Google but no profile row yet — show role picker
+        // New school members can create only a student profile.
         setPendingSession(session);
         setNeedsOnboarding(true);
         setUser(null);
       }
     } catch (err) {
-      console.error('[Auth] error loading profile:', err);
+      if (!isCurrent()) return;
+      console.error('[Auth] profile loading failed');
+      setAuthError('We could not load your school account. Please try signing in again.');
       setUser(null);
       setNeedsOnboarding(false);
       setPendingSession(null);
@@ -56,37 +69,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 1. Listen for auth state changes (covers page-load session restore + OAuth callback)
+    let disposed = false;
+    let revision = 0;
+    let activeSession: Session | null = null;
+    const refreshProfile = () => {
+      if (!activeSession || disposed) return;
+      const current = ++revision;
+      void hydrateProfile(activeSession, () => !disposed && revision === current)
+        .catch(() => {
+          if (!disposed && revision === current) setAuthError('Could not sign out. Please close this tab and try again.');
+        })
+        .finally(() => {
+          if (!disposed && revision === current) setLoading(false);
+        });
+    };
+    // Do not await Supabase calls inside its auth callback: defer hydration
+    // until the callback has released the auth client's session lock.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        console.log('[Auth] state change:', _event, session?.user?.email ?? 'no session');
-        if (session) {
-          await hydrateProfile(session);
-        } else {
+      (_event, session) => {
+        if (activeSession?.user.id !== session?.user.id) {
           setUser(null);
           setPendingSession(null);
           setNeedsOnboarding(false);
         }
-        setLoading(false);
+        activeSession = session;
+        ++revision;
+        if (session) {
+          setTimeout(refreshProfile, 0);
+        } else {
+          setUser(null);
+          setPendingSession(null);
+          setNeedsOnboarding(false);
+          setLoading(false);
+        }
       },
     );
-
-    return () => subscription.unsubscribe();
+    // Pick up administrator-approved roles or revocations in an open tab.
+    window.addEventListener('focus', refreshProfile);
+    const interval = window.setInterval(refreshProfile, 60_000);
+    return () => {
+      disposed = true;
+      ++revision;
+      subscription.unsubscribe();
+      window.removeEventListener('focus', refreshProfile);
+      window.clearInterval(interval);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const signInWithGoogle = async () => {
+    setAuthError(null);
     await sbSignIn();
     // Browser navigates away to Google — onAuthStateChange handles the return
   };
 
-  const completeOnboarding = async (role: UserRole) => {
-    if (!pendingSession) return;
+  const completeOnboarding = async () => {
+    if (!pendingSession || !hasSchoolAccess(pendingSession.user)) {
+      throw new Error(SCHOOL_ACCESS_MESSAGE);
+    }
     const { user: sbUser } = pendingSession;
     const newUser = await createProfile(sbUser.id, {
       name: sbUser.user_metadata?.full_name ?? sbUser.email ?? 'New User',
       email: sbUser.email ?? '',
       photoUrl: sbUser.user_metadata?.avatar_url,
-      role,
     });
     setUser(newUser);
     setPendingSession(null);
@@ -103,9 +147,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateUser = async (updates: Partial<User>) => {
     if (!user) return;
-    // Optimistic update — UI responds instantly, Supabase persists in background
-    setUser(prev => (prev ? { ...prev, ...updates } : prev));
+    if (updates.role !== undefined) throw new Error('Only an administrator can approve role changes.');
     await updateProfile(user.id, updates);
+    setUser(prev => (prev ? { ...prev, ...updates } : prev));
   };
 
   return (
@@ -115,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         loading,
         needsOnboarding,
+        authError,
         signInWithGoogle,
         completeOnboarding,
         logout,

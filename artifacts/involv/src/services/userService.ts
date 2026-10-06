@@ -37,7 +37,7 @@ export async function getProfileById(uid: string): Promise<User | null> {
 
 export async function createProfile(
   uid: string,
-  payload: { name: string; email: string; photoUrl?: string; role: UserRole },
+  payload: { name: string; email: string; photoUrl?: string },
 ): Promise<User> {
   const { data, error } = await supabase
     .from('profiles')
@@ -46,7 +46,7 @@ export async function createProfile(
       name: payload.name,
       email: payload.email,
       photo_url: payload.photoUrl ?? null,
-      role: payload.role,
+      role: 'student',
       bio: '',
       grade: '',
       interests: [],
@@ -67,7 +67,6 @@ export async function updateProfile(uid: string, updates: Partial<User>): Promis
   // Map camelCase User fields → snake_case DB columns
   const dbUpdates: Database['public']['Tables']['profiles']['Update'] = {};
   if (updates.name !== undefined) dbUpdates.name = updates.name;
-  if (updates.role !== undefined) dbUpdates.role = updates.role;
   if (updates.photoURL !== undefined) dbUpdates.photo_url = updates.photoURL ?? null;
   if (updates.grade !== undefined) dbUpdates.grade = updates.grade;
   if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
