@@ -63,10 +63,10 @@ export default function LoginPage() {
     setError(null);
     try {
       await signInWithGoogle();
-      // signInWithGoogle() starts the OAuth redirect — the browser navigates away.
-      // If we somehow reach here without a redirect (e.g. popup blocked), just wait.
-    } catch {
-      setError('Sign-in failed. Please try again.');
+      // In an embedded preview, sign-in continues in a separate browser tab.
+      setLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sign-in failed. Please try again.');
       setLoading(false);
     }
   };

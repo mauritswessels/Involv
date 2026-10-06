@@ -2,3 +2,4 @@
 - [Involv content principles](involv-content-principles.md) — treat every meaningful service-learning opportunity as valuable; avoid CV-quality labels.
 - [Direct Supabase authorization](supabase-authorization.md) — enforce roles and ownership in the database; avoid recursive same-table RLS checks.
 - [Presentation separation](presentation-separation.md) — keep school presentation work isolated from the Involv website and deliver it as a separate artifact.
+- [Google login in previews](google-preview-login.md) — Google rejects iframe sign-in with a generic 403; use a top-level tab for embedded previews.
