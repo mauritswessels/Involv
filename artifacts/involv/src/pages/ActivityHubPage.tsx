@@ -882,7 +882,9 @@ function CertificateTab({ opportunityTitle, studentName, approvedHours }: {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function ActivityHubPage() {
+// Retained prototype for the deferred attendance/hours/reflection/gallery work.
+// The live route uses the database-backed foundation below, never these fixtures.
+export function ActivityHubPrototype() {
   const { opportunityId } = useParams<{ opportunityId: string }>();
   const { user } = useAuth();
   const [tab, setTab] = useState<TabId>('announcements');
@@ -980,3 +982,5 @@ export default function ActivityHubPage() {
     </div>
   );
 }
+
+export { default } from './ActivityHubFoundation';

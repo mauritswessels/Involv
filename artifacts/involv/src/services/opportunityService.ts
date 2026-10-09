@@ -4,7 +4,7 @@ import type { Database } from '../lib/database.types';
 
 type OpportunityRow = Database['public']['Tables']['opportunities']['Row'];
 
-function rowToOpportunity(row: OpportunityRow): Opportunity {
+export function rowToOpportunity(row: OpportunityRow): Opportunity {
   return {
     id: row.id,
     organizerId: row.organizer_id ?? undefined,

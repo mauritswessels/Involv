@@ -71,8 +71,17 @@ try {
   const untouched = sql(`SELECT count(*) FROM public.profiles WHERE role IN ('teacher','organizer');`);
   if (!/\b2\b/.test(untouched)) throw new Error('Failed rollout changed existing roles.');
   sql(`UPDATE auth.users SET email_confirmed_at = now() WHERE id = '00000000-0000-0000-0000-000000000001';`);
+  const activityMode = process.argv.includes('--activity');
+  if (activityMode) {
+    sql(readFileSync(join(root, 'supabase/migrations/20261009000001_activity_hub_foundation.sql'), 'utf8'));
+    sql(readFileSync(join(root, 'tests/security/activity-hub.sql'), 'utf8'));
+  }
   sql(migration);
   sql(readFileSync(join(root, 'tests/security/school-access.sql'), 'utf8'));
+  if (activityMode) {
+    sql(readFileSync(join(root, 'tests/security/activity-hub.sql'), 'utf8'));
+    console.log('PASS: Activity Hub permissions, CRUD, constraints, identity protection and revocation, both before and after school-access migration.');
+  }
   // Also run the existing ownership/role suite against the new restrictions.
   sql(`
     ALTER TABLE auth.users ADD COLUMN aud text, ADD COLUMN role text,

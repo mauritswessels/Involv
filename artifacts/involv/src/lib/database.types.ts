@@ -9,6 +9,32 @@ export type ApplicationStatus = 'Pending' | 'Under Review' | 'Accepted' | 'Rejec
 export type Database = {
   public: {
     Tables: {
+      activity_announcements: {
+        Row: {
+          id: string; opportunity_id: string; author_id: string | null;
+          author_name: string; author_role: string; title: string; body: string;
+          pinned: boolean; created_at: string; updated_at: string;
+        };
+        Insert: { id?: string; opportunity_id: string; title: string; body: string; pinned?: boolean };
+        Update: { title?: string; body?: string; pinned?: boolean };
+        Relationships: [];
+      };
+      activity_sessions: {
+        Row: {
+          id: string; opportunity_id: string; created_by: string | null; title: string;
+          session_date: string; start_time: string; end_time: string;
+          location: string; notes: string; created_at: string; updated_at: string;
+        };
+        Insert: {
+          id?: string; opportunity_id: string; title: string; session_date: string;
+          start_time: string; end_time: string; location: string; notes?: string;
+        };
+        Update: {
+          title?: string; session_date?: string; start_time?: string; end_time?: string;
+          location?: string; notes?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -230,6 +256,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_activity_hub: {
+        Args: { target_opportunity_id: string };
+        Returns: unknown;
+      };
       get_site_stats: {
         Args: Record<never, never>;
         Returns: {

@@ -136,11 +136,11 @@ export default function ApplicationsManagementPage() {
               </p>
             </div>
             <Link
-              to={`/chat/${opportunityId}`}
+              to={`/activity/${opportunityId}`}
               className="btn-secondary hidden sm:inline-flex items-center gap-1.5 shrink-0"
             >
               <MessageSquareIcon size={14} />
-              Group chat
+              Activity hub
             </Link>
           </div>
         </div>

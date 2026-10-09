@@ -262,6 +262,9 @@ export default function OrganizerDashboardPage() {
                               >
                                 Manage
                               </Link>
+                              <Link to={`/activity/${opp.id}`} className="text-xs text-blue-900 hover:underline">
+                                Activity hub
+                              </Link>
                             </div>
                           </td>
                         </tr>
