@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/involv-test/"
+title = "Involv Test Environment"
+description = "An isolated, browser-local Involv test environment with fictitious school accounts and opportunities. No Google login, hosted Supabase connection or real student data."
+version = "1.0.0"
+id = "artifacts/involv-test"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/involv-test/" ]
+localPort = 22672
+
+[services.development]
+run = "pnpm --filter @workspace/involv-test run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/involv-test", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/involv-test/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22672"
+BASE_PATH = "/involv-test/"
