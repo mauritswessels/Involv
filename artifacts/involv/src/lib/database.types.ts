@@ -9,6 +9,28 @@ export type ApplicationStatus = 'Pending' | 'Under Review' | 'Accepted' | 'Rejec
 export type Database = {
   public: {
     Tables: {
+      activity_attendance: {
+        Row: {
+          id: string; opportunity_id: string; session_id: string; student_id: string;
+          student_name: string; present: boolean | null; marked_by: string | null;
+          marked_by_name: string; updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      activity_hours: {
+        Row: {
+          id: string; opportunity_id: string; student_id: string; student_name: string;
+          service_date: string; hours: number; description: string;
+          status: 'pending' | 'approved' | 'rejected'; submitted_at: string;
+          updated_at: string; reviewed_by: string | null; reviewer_name: string;
+          review_note: string; reviewed_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       activity_announcements: {
         Row: {
           id: string; opportunity_id: string; author_id: string | null;
@@ -256,6 +278,32 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_activity_participation: {
+        Args: { target_opportunity_id: string };
+        Returns: unknown;
+      };
+      mark_activity_attendance: {
+        Args: { target_session_id: string; target_student_id: string; marked_present: boolean | null };
+        Returns: string;
+      };
+      save_activity_hours: {
+        Args: {
+          target_opportunity_id: string; service_day: string; claimed_hours: number;
+          entry_description: string; existing_entry_id: string | null; expected_updated_at: string | null;
+        };
+        Returns: string;
+      };
+      withdraw_activity_hours: {
+        Args: { target_entry_id: string; expected_updated_at: string };
+        Returns: boolean;
+      };
+      review_activity_hours: {
+        Args: {
+          target_entry_id: string; decision: 'approved' | 'rejected';
+          reviewer_note: string; expected_updated_at: string;
+        };
+        Returns: boolean;
+      };
       get_activity_hub: {
         Args: { target_opportunity_id: string };
         Returns: unknown;

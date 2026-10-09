@@ -228,7 +228,7 @@ export default function SessionsTab({ opportunityId, canManage, items, onChanged
         </div>
         {canManage && confirmId === s.id && (
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
-            <p className="text-sm text-red-800 flex-1 min-w-[12rem]">Delete this session? This cannot be undone.</p>
+            <p className="text-sm text-red-800 flex-1 min-w-[12rem]">Delete this session and its attendance records? This cannot be undone. Submitted and approved service hours will be kept.</p>
             <button type="button" className="btn-secondary text-sm" disabled={busy} onClick={() => setConfirmId(null)}>Keep</button>
             <button
               type="button"

@@ -14,3 +14,9 @@ Activity feature rollout must not force activation of the separately deferred sc
 **Why:** The institution must approve Google sign-in separately, while the user requested incremental backend development to proceed.
 
 **How to apply:** Keep activity database protections independent of signup-hook activation. Do not add a production test-login bypass or weaken verified school identity requirements to make testing easier.
+
+Service-hour claims need independent review: no actor, including an administrator, may review their own claim. Only approved amounts count as credited hours, and a review must reference the exact version displayed to the reviewer.
+
+**Why:** These are school service-learning records, not casual counters. A silent edit after review or an approval of unseen changes would undermine the value of the record.
+
+**How to apply:** Preserve reviewed claims and rejection reasons; resubmission creates a new claim rather than overwriting the decision. Protect activities with hour records from deletion and use close/archive for historical work. Broader corrections, certificates and account-retention policy need explicit workflows rather than ad hoc record edits.

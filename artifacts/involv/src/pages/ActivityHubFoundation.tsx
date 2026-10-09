@@ -5,9 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { getActivityHub, type ActivityHubData } from '../services/activityService';
 import AnnouncementsTab from '../components/activity/AnnouncementsTab';
 import SessionsTab from '../components/activity/SessionsTab';
+import ParticipationPanel from '../components/activity/ParticipationPanel';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFERRED = ['Attendance', 'Hours', 'Reflections', 'Gallery', 'Certificate'];
+const DEFERRED = ['Reflections', 'Gallery', 'Certificate'];
 
 export default function ActivityHubFoundation() {
   const { opportunityId = '' } = useParams<{ opportunityId: string }>();
@@ -90,7 +91,7 @@ export default function ActivityHubFoundation() {
             </div>
           </div>
           <div className="flex overflow-x-auto scrollbar-hide -mb-px" role="tablist" aria-label="Activity hub sections">
-            {['Announcements', 'Sessions', ...DEFERRED].map(label => (
+            {['Announcements', 'Sessions', 'Attendance', 'Hours', ...DEFERRED].map(label => (
               <button key={label} role="tab" aria-selected={tab === label} aria-controls="activity-panel"
                 onClick={() => setTab(label)}
                 className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${tab === label ? 'border-blue-900 text-blue-900' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
@@ -117,6 +118,10 @@ export default function ActivityHubFoundation() {
         <section id="activity-panel" role="tabpanel" aria-label={tab}>
           {tab === 'Announcements' && <AnnouncementsTab key={key} opportunityId={opportunityId} canManage={hub.canManage} items={hub.announcements} onChanged={refresh} />}
           {tab === 'Sessions' && <SessionsTab key={key} opportunityId={opportunityId} canManage={hub.canManage} items={hub.sessions} onChanged={refresh} />}
+          {(tab === 'Attendance' || tab === 'Hours') && user && <ParticipationPanel
+            key={`${key}:${tab}`} opportunityId={opportunityId} userId={user.id} section={tab}
+            sessions={hub.sessions} participants={hub.participants} onAccessDenied={refresh}
+          />}
           {DEFERRED.includes(tab) && <div className="card p-8 text-center space-y-2">
             <h2 className="font-semibold text-slate-900">{tab} is not connected yet</h2>
             <p className="text-sm text-slate-500">This will be added in a later backend chunk. No sample records or temporary changes are shown as real activity data.</p>

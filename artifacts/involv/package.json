@@ -10,6 +10,7 @@
     "test:security": "node tests/security/run-launch-security-checks.mjs",
     "test:school-access": "node tests/security/run-school-access.mjs",
     "test:activity": "node tests/security/run-school-access.mjs --activity",
+    "test:participation": "node tests/security/run-school-access.mjs --participation",
     "load:50": "VUS=50 node tests/load/launch-readiness.mjs",
     "load:100": "VUS=100 node tests/load/launch-readiness.mjs"
   },
