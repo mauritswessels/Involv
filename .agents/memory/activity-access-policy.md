@@ -20,3 +20,14 @@ Service-hour claims need independent review: no actor, including an administrato
 **Why:** These are school service-learning records, not casual counters. A silent edit after review or an approval of unseen changes would undermine the value of the record.
 
 **How to apply:** Preserve reviewed claims and rejection reasons; resubmission creates a new claim rather than overwriting the decision. Protect activities with hour records from deletion and use close/archive for historical work. Broader corrections, certificates and account-retention policy need explicit workflows rather than ad hoc record edits.
+
+A verified school member's own service ledger is personal history, independent
+of current activity-group membership. Ending membership or closing an activity
+must not hide their earned contributions, but must still revoke private group access.
+
+**Why:** Students need an honest long-term record of their service without reopening
+former groups or disclosing other students' information.
+
+**How to apply:** Provide narrowly projected, read-only own-ledger access using
+the current verified identity. Do not broaden activity table policies, accept a
+client-selected student ID, or unlock former rosters, attendance, hubs or chats.

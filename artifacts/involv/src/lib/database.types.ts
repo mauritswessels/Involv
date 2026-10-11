@@ -278,6 +278,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_my_service_portfolio: {
+        Args: Record<never, never>;
+        Returns: unknown;
+      };
       get_activity_participation: {
         Args: { target_opportunity_id: string };
         Returns: unknown;

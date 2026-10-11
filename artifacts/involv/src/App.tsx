@@ -18,6 +18,7 @@ import EditOpportunityPage from './pages/EditOpportunityPage';
 import AdminPage from './pages/AdminPage';
 import ChatPage from './pages/ChatPage';
 import ActivityHubPage from './pages/ActivityHubPage';
+import ServicePortfolioPage from './pages/ServicePortfolioPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -145,6 +146,15 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <Layout><ActivityHubPage /></Layout>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/portfolio"
+        element={
+          <PrivateRoute>
+            <Layout><ServicePortfolioPage /></Layout>
           </PrivateRoute>
         }
       />

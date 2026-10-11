@@ -88,9 +88,14 @@ export default function StudentDashboardPage() {
                   : `You have ${applications.length} application${applications.length > 1 ? 's' : ''} on record.`}
               </p>
             </div>
-            <Link to="/browse" className="btn-primary hidden sm:inline-flex shrink-0">
-              Browse opportunities
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link data-testid="link-service-portfolio-desktop" to="/portfolio" className="btn-secondary hidden sm:inline-flex">
+                My service portfolio
+              </Link>
+              <Link to="/browse" className="btn-primary hidden sm:inline-flex">
+                Browse opportunities
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -287,6 +292,9 @@ export default function StudentDashboardPage() {
                   Complete your profile to get better opportunity recommendations.
                 </p>
               )}
+              <Link data-testid="link-service-portfolio-mobile" to="/portfolio" className="btn-secondary w-full justify-center text-xs py-1.5 mb-2 sm:hidden">
+                My service portfolio
+              </Link>
               <Link to="/profile" className="btn-secondary w-full justify-center text-xs py-1.5">
                 {profileComplete < 100 ? 'Complete profile' : 'Edit profile'}
               </Link>

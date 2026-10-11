@@ -72,16 +72,20 @@ try {
   const untouched = sql(`SELECT count(*) FROM public.profiles WHERE role IN ('teacher','organizer');`);
   if (!/\b2\b/.test(untouched)) throw new Error('Failed rollout changed existing roles.');
   sql(`UPDATE auth.users SET email_confirmed_at = now() WHERE id = '00000000-0000-0000-0000-000000000001';`);
-  const participationMode = process.argv.includes('--participation');
+  const portfolioMode = process.argv.includes('--portfolio');
+  const participationMode = process.argv.includes('--participation') || portfolioMode;
   const activityMode = process.argv.includes('--activity') || participationMode;
   let activitySuite = readFileSync(join(root, 'tests/security/activity-hub.sql'), 'utf8');
   if (participationMode) {
     activitySuite = activitySuite.replace('-- Access is derived live, including for closed listings, not cached in a JWT.',
-      readFileSync(join(root, 'tests/security/participation-checks.sql'), 'utf8') + '\n-- Access is derived live, including for closed listings, not cached in a JWT.');
+      () => readFileSync(join(root, 'tests/security/participation-checks.sql'), 'utf8')
+      + (portfolioMode ? '\n' + readFileSync(join(root, 'tests/security/portfolio-checks.sql'), 'utf8') : '')
+      + '\n-- Access is derived live, including for closed listings, not cached in a JWT.');
   }
   if (activityMode) {
     sql(readFileSync(join(root, 'supabase/migrations/20261009000001_activity_hub_foundation.sql'), 'utf8'));
     if (participationMode) sql(readFileSync(join(root, 'supabase/migrations/20261009000002_activity_participation.sql'), 'utf8'));
+    if (portfolioMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000001_student_service_portfolio.sql'), 'utf8'));
     sql(activitySuite);
   }
   sql(migration);
@@ -90,6 +94,7 @@ try {
     sql(activitySuite);
     console.log('PASS: Activity Hub permissions, CRUD, constraints, identity protection and revocation, both before and after school-access migration.');
     if (participationMode) console.log('PASS: private attendance, submit/edit/withdraw/review hours, stale versions, immutable reviews, no self-review, history retention and daily caps, before and after school-access migration.');
+    if (portfolioMode) console.log('PASS: own service portfolio, approved-only totals, reviewer metadata, private historical access without restored membership, no other-user access or widened table RLS, before and after school-access migration.');
   }
   // Also run the existing ownership/role suite against the new restrictions.
   sql(`
