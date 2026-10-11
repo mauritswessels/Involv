@@ -13,6 +13,8 @@ The launch migrations add performance indexes and authorization safeguards:
 
 - `supabase/migrations/20260923000001_launch_readiness_indexes.sql`
 - `supabase/migrations/20260923000002_security_hardening.sql`
+- `supabase/migrations/20261011000002_profile_read_privacy.sql` (apply after
+  `20261006000001_school_access_trusted_roles.sql`)
 
 Before applying it:
 
@@ -53,7 +55,7 @@ Expected access model:
 
 | Table | Expected access |
 | --- | --- |
-| `profiles` | Authenticated users can read profiles; users edit their own profile but cannot change roles; admins manage roles |
+| `profiles` | School members read their own full profile; only current school admins can read other profile rows. The admin directory requests only name, email, role, grade, and join date. |
 | `opportunities` | Public users read active listings; authenticated users create only for themselves; owners/admins update and delete |
 | `applications` | Applicants create for themselves; organizer ownership must match the opportunity; organizers update status; identity fields cannot be reassigned |
 | `saved_opportunities` | Users only access their own saved records |
@@ -64,6 +66,9 @@ present in frontend environment variables or browser bundles.
 The automated checks cover these staging behaviors:
 
 - a student cannot insert an admin profile or escalate their own role;
+- students, teachers, and organizers can read their own profiles but cannot read
+  other students' email, grade, biography, interests, or availability; admins can
+  read the profile details needed for administration;
 - an admin can change another user's role without a recursive-policy error;
 - a student can save, read, update, and delete their own saved opportunity, while
   another student cannot read, update, or delete that student's saved row;

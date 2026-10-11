@@ -24,6 +24,7 @@ function mapRowToUser(row: ProfileRow): User {
 }
 
 export async function getProfileById(uid: string): Promise<User | null> {
+  // The profile RLS policy returns this row only to its owner or a current admin.
   const { data, error } = await supabase
     .from('profiles')
     .select('*')

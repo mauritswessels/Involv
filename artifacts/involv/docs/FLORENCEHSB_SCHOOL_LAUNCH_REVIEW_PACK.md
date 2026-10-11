@@ -32,13 +32,17 @@ and rules.
       subprocessors, data locations, international transfers, backups, and deletion.
 - [ ] The school approves the privacy notice, data minimization, retention schedule,
       student/parent communications, and account deletion process.
-- [ ] The broad current profile-read policy is reviewed and changed or explicitly
-      approved before real student data is used.
+- [x] The repository replaces broad cross-user profile reads with own-profile and
+      current-admin access; the role-specific behavior is covered by rollback-only
+      database tests.
+- [ ] Apply the profile privacy migration to the verified staging project and confirm
+      the role-specific database tests pass there before using real student data.
 - [ ] The school confirms safeguarding procedures for external organizations and
       opportunities.
 - [ ] The launch migrations and role tests are run successfully in a verified staging
       Supabase project; no production migration is applied without approval.
-- [ ] The saved-opportunity privacy behavior is tested for cross-user access.
+- [x] The saved-opportunity privacy behavior has rollback-only database coverage for
+      cross-user read, update, and delete denial.
 - [ ] A small pilot passes support, access, and incident-response checks.
 
 ## 2. What the application currently does
@@ -63,11 +67,14 @@ the production deployment and provider settings match it.
   time commitment, age/grade requirements, and related listing details. Active
   opportunities are intended to be publicly readable.
 - Saved opportunities associate a user with opportunity identifiers.
-- Administrators have broad access to profiles, opportunities, and applications.
-  Organizers need access to applications for their opportunities; students need
-  access to their own application records. The current profile SELECT policy allows
-  any authenticated account to read all profile rows; this is broader than
-  least-privilege and must be resolved before a school-wide launch.
+- The profile privacy migration replaces broad profile reads: a school member can
+  read their own full profile, and only a current school administrator can read
+  other profile rows. The admin directory requests only name, email, role, grade,
+  and join date. Organizers see application details only for opportunities they
+  manage; they do not get general access to student profiles. An authorized
+  Activity Hub returns participant names only to accepted participants and approved
+  managers. Confirm the migration has actually been applied to the intended
+  Supabase environment before relying on this access model.
 - The application logs some authentication state and currently logs signed-in email
   addresses to the browser console. Remove or appropriately restrict those debug
   logs before a school-wide launch.
@@ -80,7 +87,7 @@ region, and contractual data-processing terms have not been confirmed here.
 | Data set | Examples observed in the app | Purpose | Intended access | School decision |
 | --- | --- | --- | --- | --- |
 | Authentication account | Supabase user ID; Google sign-in identity and email; session state | Sign-in and account continuity | The signed-in user and authentication service; application services receive the user ID and selected profile details | Confirm Google scopes, account eligibility, and what happens when a student leaves |
-| Profile | Name, email, role, grade, optional photo URL, bio, interests, career goals, skills, availability, preferred categories | Create and manage a student or organizer profile | **Current migration policy:** any authenticated user can read all profile rows. This exposes more than own-profile and admin views require; restrict and test before pilot, or have the school explicitly accept the scope with minimized fields | Confirm which fields are necessary; limit reads to role-appropriate data; make sensitive or optional fields optional |
+| Profile | Name, email, role, grade, optional photo URL, bio, interests, career goals, skills, availability, preferred categories | Create and manage a student or organizer profile | Each school member can read their own full profile. Only current school admins can read all profiles; the admin directory fetches only name, email, role, grade, and join date. Organizers receive relevant applicant details through applications for their own opportunities, not general profile reads. | Confirm the profile privacy migration and behavior tests are applied in staging; keep optional fields optional |
 | Application | Applicant and opportunity IDs, applicant name/email/grade, motivation, experience, availability, status, submitted date | Submit and manage an application | Applicant; organizer for that opportunity; designated admins, subject to database authorization | Explain sharing before submission; decide retention and withdrawal handling |
 | Opportunity listing | Title, descriptions, organizer name/role/email, location, dates, age/grade requirements, skills and impact details | Publish and administer service opportunities | Active listings are intended to be public; owners and admins manage records | Confirm which organizer contact details are public and who verifies listings |
 | Saved opportunity | User ID and opportunity ID | Let a user keep a private list | That user only | Test that another user cannot read or change the saved list |
@@ -184,7 +191,7 @@ consultation is required.
 
 | Risk to consider | Why it matters here | Draft mitigation / decision |
 | --- | --- | --- |
-| Student profile or application exposed to the wrong person | The current profile SELECT policy allows every authenticated user to read all profiles, including email, grade, and profile details. Application narratives can also reveal personal information | High-priority: change profile access to least privilege and test denied reads. Verify role behavior in staging. The role-access test work has been merged; keep the separate saved-opportunity privacy check open until proved |
+| Student profile or application exposed to the wrong person | The previous profile SELECT policy allowed all authenticated users to read all profiles. The profile privacy migration now restricts full profile rows to their owner or a current school admin; organizers still receive application details for their own opportunities. Application narratives can contain personal information. | Rollback-only tests cover student, teacher, organizer, and admin profile reads. Apply the migration and run the same checks against verified staging before relying on the protection there; separately review application-field minimization and retention. |
 | Student writes or changes a privileged role | Role changes could give access to many records | Keep role authorization in database policies and triggers; test denied and permitted role changes with separate test accounts |
 | Organizer changes an applicant’s narrative or identity | Organizers should process applications without rewriting student-submitted content | Test organizer status updates and forbidden edits to application fields |
 | Public listing discloses contact details | Active opportunities are publicly readable and contain organizer contact fields | Review public UI/API responses; use a school contact address where appropriate |
@@ -264,11 +271,14 @@ applications must be deleted, anonymized, or retained under an approved schedule
 
 - [ ] Confirm which Supabase project is staging and which is production.
 - [ ] Review backups and migration history before any remote schema change.
-- [ ] Apply launch migrations to staging and run the database security behavior suite.
+- [ ] Apply launch and profile-privacy migrations to verified staging and run the
+      database security behavior suite.
 - [ ] Test student, organizer, and admin accounts, including denied actions.
-- [ ] Replace or explicitly approve the current policy that lets every authenticated
-      user read every profile; verify students cannot read unnecessary profile fields
-      belonging to other students.
+- [x] The profile policies in the repository limit full profile reads to the profile
+      owner or current school admins; students, teachers, and organizers cannot read
+      other students’ profile rows.
+- [ ] Verify those profile read restrictions against the actual staging project after
+      the migration is applied.
 - [ ] Test that saved opportunities cannot be read or changed by another user.
 - [ ] Confirm organizer emails and active opportunity fields are appropriate for public view.
 - [ ] Remove browser logs that disclose signed-in email addresses.

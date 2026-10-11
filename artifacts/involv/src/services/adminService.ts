@@ -5,22 +5,26 @@ import type { Category } from '../types';
 import { rowToApplication } from './applicationService';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+type AdminProfileRow = Pick<
+  ProfileRow,
+  'id' | 'name' | 'email' | 'role' | 'grade' | 'created_at'
+>;
 
-function rowToUser(row: ProfileRow): User {
+function rowToUser(row: AdminProfileRow): User {
   return {
     id: row.id,
     name: row.name,
     email: row.email,
     role: row.role as UserRole,
-    photoURL: row.photo_url ?? undefined,
+    photoURL: undefined,
     grade: row.grade ?? '',
-    bio: row.bio ?? '',
-    interests: row.interests ?? [],
-    careerGoals: row.career_goals ?? [],
-    skills: row.skills ?? [],
-    availability: row.availability ?? [],
-    preferredCategories: (row.preferred_categories ?? []) as Category[],
-    onboardingComplete: row.onboarding_complete,
+    bio: '',
+    interests: [],
+    careerGoals: [],
+    skills: [],
+    availability: [],
+    preferredCategories: [],
+    onboardingComplete: false,
     createdAt: row.created_at,
   };
 }
@@ -65,7 +69,7 @@ function rowToOpportunity(row: OpportunityRow): Opportunity {
 export async function getAllProfiles(): Promise<User[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, name, email, role, grade, created_at')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(rowToUser);
@@ -98,7 +102,7 @@ export async function setUserRole(uid: string, role: UserRole): Promise<User> {
     .from('profiles')
     .update({ role })
     .eq('id', uid)
-    .select('*')
+    .select('id, name, email, role, grade, created_at')
     .single();
   if (error) throw error;
   return rowToUser(data);

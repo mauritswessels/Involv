@@ -89,6 +89,7 @@ try {
     sql(activitySuite);
   }
   sql(migration);
+  sql(readFileSync(join(root, 'supabase/migrations/20261011000002_profile_read_privacy.sql'), 'utf8'));
   sql(readFileSync(join(root, 'tests/security/school-access.sql'), 'utf8'));
   if (activityMode) {
     sql(activitySuite);
@@ -106,7 +107,7 @@ try {
   sql(`\\set launch_security_test_environment staging
 \\set launch_security_test_project_ref abcdefghijklmnopqrst
 ${readFileSync(join(root, 'supabase/tests/launch_security_checks.sql'), 'utf8')}`);
-  console.log('PASS: admin preflight and rollback, exact verified school membership, signup hook, default student roles, identity protection, approval/revocation, ownership, audit, and public browsing.');
+  console.log('PASS: school-access and private-profile policies, role-specific profile reads, saved-opportunity privacy, ownership, approval/revocation, audit, and public browsing.');
   if (participationMode) await checkParticipationConcurrency(sql, socket);
 } finally {
   if (started) run('pg_ctl', ['-D', data, '-m', 'immediate', '-w', 'stop']);

@@ -89,6 +89,8 @@ BEGIN
       ('profiles', CASE WHEN to_regprocedure('public.is_school_member()') IS NOT NULL
         THEN 'School members create student profiles'
         ELSE 'Users can insert own non-admin profile' END, 'INSERT'),
+      ('profiles', 'Users can read own profile', 'SELECT'),
+      ('profiles', 'Admins can read all profiles', 'SELECT'),
       ('profiles', 'Users can update own profile', 'UPDATE'),
       ('profiles', 'Admins can update any profile', 'UPDATE'),
       ('opportunities', 'Anyone can read active opportunities', 'SELECT'),
@@ -108,6 +110,42 @@ BEGIN
 
   IF missing_required_policies IS NOT NULL THEN
     RAISE EXCEPTION 'Required RLS policies are missing: %', missing_required_policies;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'profiles'
+      AND policyname = 'Users can read own profile'
+      AND cmd = 'SELECT'
+      AND qual ILIKE '%id%'
+      AND qual ILIKE '%auth.uid%'
+  ) THEN
+    RAISE EXCEPTION 'The own-profile read policy does not restrict rows to auth.uid()';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'profiles'
+      AND policyname = 'Admins can read all profiles'
+      AND cmd = 'SELECT'
+      AND qual ILIKE '%is_admin%'
+      AND qual ILIKE '%auth.uid%'
+  ) THEN
+    RAISE EXCEPTION 'The all-profile read policy is not restricted to the current administrator';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'profiles'
+      AND permissive = 'PERMISSIVE'
+      AND cmd IN ('ALL', 'SELECT')
+      AND policyname NOT IN ('Users can read own profile', 'Admins can read all profiles')
+  ) THEN
+    RAISE EXCEPTION 'An unexpected permissive policy can expose profile rows';
   END IF;
 
   IF NOT EXISTS (
@@ -278,12 +316,18 @@ DO $$ BEGIN
   END IF;
 END; $$;
 
-INSERT INTO public.profiles (id, name, email, role)
+INSERT INTO public.profiles (
+  id, name, email, role, grade, bio, interests, availability
+)
 SELECT
   fixture.id,
   'Security test ' || fixture.user_role,
   'security-test-' || fixture.id::text || '@iszl.ch',
-  fixture.user_role
+  fixture.user_role,
+  '11',
+  'Private profile fixture',
+  ARRAY['Sustainability & Environment'],
+  ARRAY['Weekends']
 FROM (
   VALUES
     (current_setting('app.involv_security_test.student')::uuid, 'student'),
@@ -424,11 +468,51 @@ SELECT pg_temp.use_fixture_user(
 ) \gset
 
 DO $$
+DECLARE
+  own_email text;
+  own_grade text;
+  own_interests text[];
+  own_availability text[];
+  other_email text;
+  other_grade text;
+  other_bio text;
+  other_interests text[];
+  other_availability text[];
+  other_profile_visible boolean;
 BEGIN
   PERFORM pg_temp.assert_security_test(
     current_user = 'authenticated'
       AND auth.uid() = current_setting('app.involv_security_test.student')::uuid,
     'the student fixture is executing as authenticated with its own JWT subject'
+  );
+
+  SELECT email, grade, interests, availability
+  INTO own_email, own_grade, own_interests, own_availability
+  FROM public.profiles
+  WHERE id = auth.uid();
+
+  PERFORM pg_temp.assert_security_test(
+    own_email = 'security-test-' || auth.uid()::text || '@iszl.ch'
+      AND own_grade = '11'
+      AND own_interests = ARRAY['Sustainability & Environment']
+      AND own_availability = ARRAY['Weekends'],
+    'a student can read the private fields in their own profile'
+  );
+
+  SELECT email, grade, bio, interests, availability
+  INTO other_email, other_grade, other_bio, other_interests, other_availability
+  FROM public.profiles
+  WHERE id = current_setting('app.involv_security_test.other_student')::uuid;
+  other_profile_visible := FOUND;
+
+  PERFORM pg_temp.assert_security_test(
+    NOT other_profile_visible
+      AND other_email IS NULL
+      AND other_grade IS NULL
+      AND other_bio IS NULL
+      AND other_interests IS NULL
+      AND other_availability IS NULL,
+    'a student cannot read another student’s email, grade, bio, interests, or availability'
   );
 
   PERFORM pg_temp.expect_authorization_denial(
@@ -473,17 +557,69 @@ WHERE id = current_setting('app.involv_security_test.other_student')::uuid;
 DO $$
 DECLARE
   target_role text;
+  target_email text;
+  target_grade text;
+  target_interests text[];
 BEGIN
-  SELECT role INTO target_role
+  SELECT role, email, grade, interests
+  INTO target_role, target_email, target_grade, target_interests
   FROM public.profiles
   WHERE id = current_setting('app.involv_security_test.other_student')::uuid;
 
   PERFORM pg_temp.assert_security_test(
-    target_role = 'teacher',
-    'an admin changing another profile role'
+    target_role = 'teacher'
+      AND target_email = 'security-test-' ||
+        current_setting('app.involv_security_test.other_student') || '@iszl.ch'
+      AND target_grade = '11'
+      AND target_interests = ARRAY['Sustainability & Environment'],
+    'an admin changing another role and reading required profile details'
   );
 END
 $$;
+
+-- A teacher still reads their own profile, but cannot enumerate students.
+SELECT pg_temp.use_fixture_user(
+  current_setting('app.involv_security_test.other_student')::uuid
+) \gset
+
+DO $$
+DECLARE
+  own_role text;
+  other_email text;
+  other_grade text;
+  other_interests text[];
+  other_availability text[];
+  other_profile_visible boolean;
+BEGIN
+  SELECT role INTO own_role
+  FROM public.profiles
+  WHERE id = auth.uid();
+
+  PERFORM pg_temp.assert_security_test(
+    own_role = 'teacher',
+    'a teacher can read their own profile'
+  );
+
+  SELECT email, grade, interests, availability
+  INTO other_email, other_grade, other_interests, other_availability
+  FROM public.profiles
+  WHERE id = current_setting('app.involv_security_test.student')::uuid;
+  other_profile_visible := FOUND;
+
+  PERFORM pg_temp.assert_security_test(
+    NOT other_profile_visible
+      AND other_email IS NULL
+      AND other_grade IS NULL
+      AND other_interests IS NULL
+      AND other_availability IS NULL,
+    'a teacher cannot read another student profile'
+  );
+END
+$$;
+
+SELECT pg_temp.use_fixture_user(
+  current_setting('app.involv_security_test.admin')::uuid
+) \gset
 
 UPDATE public.profiles
 SET role = 'student'
@@ -494,6 +630,39 @@ WHERE id = current_setting('app.involv_security_test.other_student')::uuid;
 SELECT pg_temp.use_fixture_user(
   current_setting('app.involv_security_test.organizer')::uuid
 ) \gset
+
+DO $$
+DECLARE
+  own_role text;
+  other_email text;
+  other_grade text;
+  other_bio text;
+  other_profile_visible boolean;
+BEGIN
+  SELECT role INTO own_role
+  FROM public.profiles
+  WHERE id = auth.uid();
+
+  PERFORM pg_temp.assert_security_test(
+    own_role = 'organizer',
+    'an organizer can read their own profile'
+  );
+
+  SELECT email, grade, bio
+  INTO other_email, other_grade, other_bio
+  FROM public.profiles
+  WHERE id = current_setting('app.involv_security_test.student')::uuid;
+  other_profile_visible := FOUND;
+
+  PERFORM pg_temp.assert_security_test(
+    NOT other_profile_visible
+      AND other_email IS NULL
+      AND other_grade IS NULL
+      AND other_bio IS NULL,
+    'an organizer cannot read a student profile directly'
+  );
+END
+$$;
 
 DO $$
 DECLARE
