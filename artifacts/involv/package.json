@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test:security": "node tests/security/run-launch-security-checks.mjs",
     "test:school-access": "node tests/security/run-school-access.mjs",
