@@ -9,6 +9,13 @@ export type ApplicationStatus = 'Pending' | 'Under Review' | 'Accepted' | 'Rejec
 export type Database = {
   public: {
     Tables: {
+      activity_reflections: {
+        Row: {
+          id: string; opportunity_id: string | null; activity_title: string;
+          student_id: string; content: string; created_at: string; updated_at: string;
+        };
+        Insert: never; Update: never; Relationships: [];
+      };
       activity_messages: {
         Row: {
           id: string; opportunity_id: string; sender_id: string; sender_name: string;
@@ -287,6 +294,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_my_activity_reflections: {
+        Args: { target_opportunity_id: string | null; before_created_at: string | null; before_id: string | null };
+        Returns: unknown;
+      };
+      save_my_activity_reflection: {
+        Args: { target_opportunity_id: string | null; reflection_content: string; target_reflection_id: string; expected_updated_at: string | null };
+        Returns: unknown;
+      };
+      delete_my_activity_reflection: {
+        Args: { target_reflection_id: string; expected_updated_at: string };
+        Returns: boolean;
+      };
       send_activity_message: {
         Args: { target_opportunity_id: string; message_content: string; request_nonce: string };
         Returns: unknown;

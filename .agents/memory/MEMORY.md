@@ -5,3 +5,4 @@
 - [Google login in previews](google-preview-login.md) — Google rejects iframe sign-in with a generic 403; use a top-level tab for embedded previews.
 - [ISZL access policy](school-access-policy.md) — exact @iszl.ch membership, student-first signup, and fresh admin approval for privileged roles.
 - [Activity group access](activity-access-policy.md) — private project groups, historical access for current members, and rollout independent of school OAuth approval.
+- [Private reflections](reflection-privacy.md) — personal notes, not teacher-reviewed submissions; manager/admin roles do not grant access.

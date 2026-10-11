@@ -19,6 +19,7 @@ import AdminPage from './pages/AdminPage';
 import ChatPage from './pages/ChatPage';
 import ActivityHubPage from './pages/ActivityHubPage';
 import ServicePortfolioPage from './pages/ServicePortfolioPage';
+import PrivateReflectionsPage from './pages/PrivateReflectionsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -159,6 +160,7 @@ function AppRoutes() {
         }
       />
 
+      <Route path="/reflections" element={<PrivateRoute><Layout><PrivateReflectionsPage /></Layout></PrivateRoute>} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

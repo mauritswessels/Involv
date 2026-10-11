@@ -74,8 +74,9 @@ try {
   sql(`UPDATE auth.users SET email_confirmed_at = now() WHERE id = '00000000-0000-0000-0000-000000000001';`);
   const portfolioMode = process.argv.includes('--portfolio');
   const messagingMode = process.argv.includes('--messaging');
+  const reflectionsMode = process.argv.includes('--reflections');
   const participationMode = process.argv.includes('--participation') || portfolioMode;
-  const activityMode = process.argv.includes('--activity') || participationMode || messagingMode;
+  const activityMode = process.argv.includes('--activity') || participationMode || messagingMode || reflectionsMode;
   let activitySuite = readFileSync(join(root, 'tests/security/activity-hub.sql'), 'utf8');
   if (participationMode) {
     activitySuite = activitySuite.replace('-- Access is derived live, including for closed listings, not cached in a JWT.',
@@ -88,11 +89,17 @@ try {
       () => readFileSync(join(root, 'tests/security/messaging-checks.sql'), 'utf8')
       + '\n-- Access is derived live, including for closed listings, not cached in a JWT.');
   }
+  if (reflectionsMode) {
+    activitySuite = activitySuite.replace('-- Access is derived live, including for closed listings, not cached in a JWT.',
+      () => readFileSync(join(root, 'tests/security/reflection-checks.sql'), 'utf8')
+      + '\n-- Access is derived live, including for closed listings, not cached in a JWT.');
+  }
   if (activityMode) {
     sql(readFileSync(join(root, 'supabase/migrations/20261009000001_activity_hub_foundation.sql'), 'utf8'));
     if (participationMode) sql(readFileSync(join(root, 'supabase/migrations/20261009000002_activity_participation.sql'), 'utf8'));
     if (portfolioMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000001_student_service_portfolio.sql'), 'utf8'));
     if (messagingMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000003_activity_group_messages.sql'), 'utf8'));
+    if (reflectionsMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000004_private_activity_reflections.sql'), 'utf8'));
     sql(activitySuite);
   }
   sql(migration);
@@ -104,6 +111,7 @@ try {
     if (participationMode) console.log('PASS: private attendance, submit/edit/withdraw/review hours, stale versions, immutable reviews, no self-review, history retention and daily caps, before and after school-access migration.');
     if (portfolioMode) console.log('PASS: own service portfolio, approved-only totals, reviewer metadata, private historical access without restored membership, no other-user access or widened table RLS, before and after school-access migration.');
     if (messagingMode) console.log('PASS: private group messaging, server-derived sender, idempotent retries, rate limits, pagination, closed history and revoked access, before and after school-access migration.');
+    if (reflectionsMode) console.log('PASS: author-only reflections, create/edit/delete, duplicate retries, stale versions, validation, private history after membership ends, pagination and no manager/admin access, before and after school-access migration.');
   }
   // Also run the existing ownership/role suite against the new restrictions.
   sql(`

@@ -6,9 +6,10 @@ import { getActivityHub, type ActivityHubData } from '../services/activityServic
 import AnnouncementsTab from '../components/activity/AnnouncementsTab';
 import SessionsTab from '../components/activity/SessionsTab';
 import ParticipationPanel from '../components/activity/ParticipationPanel';
+import PrivateReflectionsPanel from '../components/activity/PrivateReflectionsPanel';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFERRED = ['Reflections', 'Gallery', 'Certificate'];
+const DEFERRED = ['Gallery', 'Certificate'];
 
 export default function ActivityHubFoundation() {
   const { opportunityId = '' } = useParams<{ opportunityId: string }>();
@@ -92,7 +93,7 @@ export default function ActivityHubFoundation() {
             <Link to={`/chat/${opportunityId}`} className="btn-secondary text-xs shrink-0">Group chat</Link>
           </div>
           <div className="flex overflow-x-auto scrollbar-hide -mb-px" role="tablist" aria-label="Activity hub sections">
-            {['Announcements', 'Sessions', 'Attendance', 'Hours', ...DEFERRED].map(label => (
+            {['Announcements', 'Sessions', 'Attendance', 'Hours', 'Reflections', ...DEFERRED].map(label => (
               <button key={label} role="tab" aria-selected={tab === label} aria-controls="activity-panel"
                 onClick={() => setTab(label)}
                 className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${tab === label ? 'border-blue-900 text-blue-900' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
@@ -119,6 +120,7 @@ export default function ActivityHubFoundation() {
         <section id="activity-panel" role="tabpanel" aria-label={tab}>
           {tab === 'Announcements' && <AnnouncementsTab key={key} opportunityId={opportunityId} canManage={hub.canManage} items={hub.announcements} onChanged={refresh} />}
           {tab === 'Sessions' && <SessionsTab key={key} opportunityId={opportunityId} canManage={hub.canManage} items={hub.sessions} onChanged={refresh} />}
+          {tab === 'Reflections' && user && <PrivateReflectionsPanel key={key} opportunityId={opportunityId} />}
           {(tab === 'Attendance' || tab === 'Hours') && user && <ParticipationPanel
             key={`${key}:${tab}`} opportunityId={opportunityId} userId={user.id} section={tab}
             sessions={hub.sessions} participants={hub.participants} onAccessDenied={refresh}
