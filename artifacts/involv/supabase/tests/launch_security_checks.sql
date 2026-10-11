@@ -234,6 +234,7 @@ SELECT set_config('app.involv_security_test.other_opportunity', gen_random_uuid(
 SELECT set_config('app.involv_security_test.new_opportunity', gen_random_uuid()::text, true);
 SELECT set_config('app.involv_security_test.application', gen_random_uuid()::text, true);
 SELECT set_config('app.involv_security_test.other_application', gen_random_uuid()::text, true);
+SELECT set_config('app.involv_security_test.saved_opportunity', gen_random_uuid()::text, true);
 
 INSERT INTO auth.users (
   id,
@@ -560,6 +561,138 @@ BEGIN
       '2099-12-31'
     ),
     'an organizer creating an opportunity for another user'
+  );
+END
+$$;
+
+-- Saved opportunities are private per user. Exercise every CRUD operation
+-- through the authenticated API role, not only by inspecting pg_policies.
+SELECT pg_temp.use_fixture_user(
+  current_setting('app.involv_security_test.student')::uuid
+) \gset
+
+INSERT INTO public.saved_opportunities (id, user_id, opportunity_id)
+VALUES (
+  current_setting('app.involv_security_test.saved_opportunity')::uuid,
+  auth.uid(),
+  current_setting('app.involv_security_test.opportunity')::uuid
+);
+
+DO $$
+DECLARE
+  saved_count integer;
+  changed_rows integer;
+BEGIN
+  SELECT count(*)
+  INTO saved_count
+  FROM public.saved_opportunities
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid
+    AND user_id = auth.uid()
+    AND opportunity_id = current_setting('app.involv_security_test.opportunity')::uuid;
+
+  PERFORM pg_temp.assert_security_test(
+    saved_count = 1,
+    'a student creating and reading their own saved opportunity'
+  );
+
+  PERFORM pg_temp.expect_authorization_denial(
+    format(
+      'UPDATE public.saved_opportunities SET user_id = %L::uuid WHERE id = %L::uuid',
+      current_setting('app.involv_security_test.other_student'),
+      current_setting('app.involv_security_test.saved_opportunity')
+    ),
+    'a student transferring their saved row to another identity'
+  );
+
+  UPDATE public.saved_opportunities
+  SET opportunity_id = current_setting('app.involv_security_test.other_opportunity')::uuid
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid;
+  GET DIAGNOSTICS changed_rows = ROW_COUNT;
+
+  PERFORM pg_temp.assert_security_test(
+    changed_rows = 1
+      AND (SELECT opportunity_id = current_setting('app.involv_security_test.other_opportunity')::uuid
+        FROM public.saved_opportunities
+        WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid),
+    'a student updating the opportunity in their own saved record'
+  );
+END
+$$;
+
+SELECT pg_temp.use_fixture_user(
+  current_setting('app.involv_security_test.other_student')::uuid
+) \gset
+
+DO $$
+DECLARE
+  visible_count integer;
+  changed_rows integer;
+BEGIN
+  SELECT count(*) INTO visible_count
+  FROM public.saved_opportunities
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid;
+
+  PERFORM pg_temp.assert_security_test(
+    visible_count = 0,
+    'another student cannot read a saved opportunity'
+  );
+
+  UPDATE public.saved_opportunities
+  SET created_at = created_at + interval '1 day'
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid;
+  GET DIAGNOSTICS changed_rows = ROW_COUNT;
+
+  PERFORM pg_temp.assert_security_test(
+    changed_rows = 0,
+    'another student cannot update a saved opportunity'
+  );
+
+  DELETE FROM public.saved_opportunities
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid;
+  GET DIAGNOSTICS changed_rows = ROW_COUNT;
+
+  PERFORM pg_temp.assert_security_test(
+    changed_rows = 0,
+    'another student cannot delete a saved opportunity'
+  );
+END
+$$;
+
+SELECT pg_temp.use_fixture_user(
+  current_setting('app.involv_security_test.student')::uuid
+) \gset
+
+DO $$
+DECLARE
+  visible_count integer;
+  changed_rows integer;
+BEGIN
+  SELECT count(*) INTO visible_count
+  FROM public.saved_opportunities
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid
+    AND user_id = auth.uid();
+
+  PERFORM pg_temp.assert_security_test(
+    visible_count = 1,
+    'the saved record remains private and unchanged after another user attempts access'
+  );
+
+  DELETE FROM public.saved_opportunities
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid;
+  GET DIAGNOSTICS changed_rows = ROW_COUNT;
+
+  PERFORM pg_temp.assert_security_test(
+    changed_rows = 1,
+    'a student deleting their own saved opportunity'
+  );
+
+  SELECT count(*) INTO visible_count
+  FROM public.saved_opportunities
+  WHERE id = current_setting('app.involv_security_test.saved_opportunity')::uuid;
+
+  PERFORM pg_temp.assert_security_test(
+    visible_count = 0,
+    'the saved opportunity deletion persists'
   );
 END
 $$;

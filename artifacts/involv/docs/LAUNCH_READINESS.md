@@ -65,6 +65,8 @@ The automated checks cover these staging behaviors:
 
 - a student cannot insert an admin profile or escalate their own role;
 - an admin can change another user's role without a recursive-policy error;
+- a student can save, read, update, and delete their own saved opportunity, while
+  another student cannot read, update, or delete that student's saved row;
 - organizers can create and update their own opportunities, but cannot forge or
   transfer opportunity ownership;
 - students can create applications only for themselves and cannot forge the

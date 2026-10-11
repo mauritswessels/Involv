@@ -96,7 +96,9 @@ if (sslRootCertificate) {
   psqlEnvironment.PGSSLROOTCERT = sslRootCertificate;
 }
 
-console.log(`Running role access checks against staging project ${projectRef}.`);
+console.log(
+  `Running role and saved-opportunity ownership checks against staging project ${projectRef}.`,
+);
 const result = spawnSync("psql", psqlArgs, {
   env: psqlEnvironment,
   stdio: "inherit",
