@@ -3,6 +3,8 @@ import type { FormEvent } from 'react';
 import { CheckIcon, ClockIcon, PencilIcon, PlusIcon, RefreshCwIcon, XIcon } from 'lucide-react';
 import { reviewHours, saveHours, withdrawHours } from '../../services/participationService';
 import type { ActivityHours } from '../../services/participationService';
+import HourCorrectionForm from './HourCorrectionForm';
+import HourReviewHistory from './HourReviewHistory';
 
 interface Props {
   opportunityId: string;
@@ -60,8 +62,10 @@ export default function HoursTab({ opportunityId, canManage, canSubmit, userId, 
   const [editing, setEditing] = useState<Editing | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [review, setReview] = useState<Review | null>(null);
+  const [correction, setCorrection] = useState<ActivityHours | null>(null);
   const [withdrawId, setWithdrawId] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [mutationBusy, setBusy] = useState(false);
+  const busy = mutationBusy || !!correction;
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -74,12 +78,12 @@ export default function HoursTab({ opportunityId, canManage, canSubmit, userId, 
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => {
-    setEditing(null); setReview(null); setWithdrawId(null); setForm(EMPTY); setError(''); setStatus('');
+    setEditing(null); setReview(null); setCorrection(null); setWithdrawId(null); setForm(EMPTY); setError(''); setStatus('');
   }, [opportunityId, userId]);
   useEffect(() => {
     if (!canSubmit) { setEditing(null); setWithdrawId(null); setForm(EMPTY); }
   }, [canSubmit]);
-  useEffect(() => { if (!canManage) setReview(null); }, [canManage]);
+  useEffect(() => { if (!canManage) { setReview(null); setCorrection(null); } }, [canManage]);
 
   const rows = useMemo(
     () => (canManage ? items : items.filter(h => h.studentId === userId))
@@ -131,11 +135,13 @@ export default function HoursTab({ opportunityId, canManage, canSubmit, userId, 
 
   function openNew(prefill?: ActivityHours) {
     if (!canSubmit || busy) return;
+    setCorrection(null);
     setForm(prefill ? { date: prefill.date, hoursStr: fmt(prefill.hours), description: prefill.description } : EMPTY);
     setEditing({ mode: 'new' }); setReview(null); setWithdrawId(null); setError(''); setStatus('');
   }
   function openEdit(h: ActivityHours) {
     if (!canSubmit || busy || h.studentId !== userId || h.status !== 'pending') return;
+    setCorrection(null);
     setForm({ date: h.date, hoursStr: fmt(h.hours), description: h.description });
     setEditing({ mode: 'edit', snapshot: h }); setReview(null); setWithdrawId(null); setError(''); setStatus('');
   }
@@ -162,7 +168,7 @@ export default function HoursTab({ opportunityId, canManage, canSubmit, userId, 
 
   function openReview(h: ActivityHours, decision: 'approved' | 'rejected') {
     if (!canManage || busy || h.studentId === userId || h.status !== 'pending') return;
-    setReview({ snapshot: h, decision, note: '' }); setEditing(null); setWithdrawId(null); setError(''); setStatus('');
+    setCorrection(null); setReview({ snapshot: h, decision, note: '' }); setEditing(null); setWithdrawId(null); setError(''); setStatus('');
   }
 
   async function submitReview(e: FormEvent) {
@@ -272,6 +278,12 @@ export default function HoursTab({ opportunityId, canManage, canSubmit, userId, 
         </form>
       )}
 
+      {correction && canManage && <HourCorrectionForm key={correction.id + correction.updatedAt}
+        entry={correction} stale={!current(correction.id) || current(correction.id)?.updatedAt !== correction.updatedAt}
+        onCancel={() => setCorrection(null)} onChanged={onChanged}
+        onSaved={() => { setCorrection(null); setStatus('Correction saved. The approved total and review history are updated.'); }}
+      />}
+
       <div className="card divide-y divide-slate-100 overflow-hidden">
         {rows.length === 0 ? (
           <div className="text-center py-12 text-slate-400">
@@ -305,6 +317,11 @@ export default function HoursTab({ opportunityId, canManage, canSubmit, userId, 
                 )}
 
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  {canManage && !pending && !own && <button type="button" disabled={busy || !!correction}
+                    onClick={() => { setCorrection(h); setEditing(null); setReview(null); setWithdrawId(null); setError(''); setStatus(''); }}
+                    className="text-xs text-amber-800 font-medium px-2 py-1 rounded hover:bg-amber-50 disabled:opacity-50">
+                    Correct reviewed hours
+                  </button>}
                   {own && pending && canSubmit && (
                     <>
                       <button type="button" disabled={busy} onClick={() => openEdit(h)} aria-label={`Edit pending entry from ${formatDate(h.date)}`}
@@ -336,6 +353,7 @@ export default function HoursTab({ opportunityId, canManage, canSubmit, userId, 
                     <p className="text-xs text-slate-500">You cannot review your own entry. Another organizer must approve or reject it.</p>
                   )}
                 </div>
+                <HourReviewHistory history={h.reviewHistory} />
 
                 {own && withdrawId === h.id && pending && canSubmit && (
                   <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3">

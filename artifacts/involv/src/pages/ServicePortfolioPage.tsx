@@ -1,3 +1,4 @@
+import HourReviewHistory from '../components/activity/HourReviewHistory';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DownloadIcon, RefreshCwIcon } from 'lucide-react';
@@ -148,13 +149,14 @@ function PortfolioContent() {
                       <div className="min-w-0">
                         <h2 className="text-sm font-semibold text-slate-900 break-words">{e.activityTitle}</h2>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          <time dateTime={e.date}>{fmtDate(e.date)}</time> - {e.activityCategory} - {hrs(e.hours)} submitted
+                          <time dateTime={e.date}>{fmtDate(e.date)}</time> - {e.activityCategory} - {hrs(e.hours)} currently recorded
                         </p>
                       </div>
                       <span data-testid={`status-contribution-${e.id}`} className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLE[e.status]}`}>{STATUS_LABEL[e.status]}</span>
                     </div>
                     {e.description && <p className="text-sm text-slate-700 mt-2 whitespace-pre-wrap break-words">{e.description}</p>}
                     <div className="mt-3 text-xs text-slate-500 border-t border-slate-100 pt-2">
+                      <HourReviewHistory history={e.reviewHistory} />
                       {e.reviewedAt ? (
                         <>
                           <p>Reviewed by {e.reviewerName || 'a reviewer'} on {fmtTime(e.reviewedAt)}</p>

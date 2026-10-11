@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:corrections": "node tests/security/run-school-access.mjs --corrections",
     "dev": "vite",
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",

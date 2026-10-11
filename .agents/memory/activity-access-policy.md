@@ -44,3 +44,18 @@ as stored history.
 **How to apply:** A later Realtime implementation needs equivalent private
 channel authorization and revocation handling before replacing polling. Do not
 add simulated presence indicators or claim immediate delivery while polling.
+
+Service-hour corrections are a separate, reason-required management decision,
+not a student edit or an exception allowing an admin to approve their own hours.
+They may change the current reviewed amount or revoke/reinstate a decision, but
+must preserve the original decision and each before/after correction. Existing
+decisions at installation are labelled baselines, not reconstructed audit history.
+
+**Why:** The user chose corrections with review history before certificates.
+The current total must be correct without hiding who originally approved a claim
+or implying that unrecorded earlier changes are known.
+
+**How to apply:** Keep current-value exports distinct from full audit history.
+Coordinate corrections and new claims against the same student's daily limit;
+separate per-activity limits would let simultaneous changes over-credit a day.
+Account-closure/anonymisation policy still requires its separate approval.

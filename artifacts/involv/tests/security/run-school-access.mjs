@@ -6,6 +6,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { checkParticipationConcurrency } from './participation-concurrency.mjs';
+import { checkCorrectionConcurrency } from './hour-correction-concurrency.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const tmp = mkdtempSync(join(tmpdir(), 'involv-school-access-'));
 const data = join(tmp, 'data');
@@ -72,7 +73,8 @@ try {
   const untouched = sql(`SELECT count(*) FROM public.profiles WHERE role IN ('teacher','organizer');`);
   if (!/\b2\b/.test(untouched)) throw new Error('Failed rollout changed existing roles.');
   sql(`UPDATE auth.users SET email_confirmed_at = now() WHERE id = '00000000-0000-0000-0000-000000000001';`);
-  const portfolioMode = process.argv.includes('--portfolio');
+  const correctionsMode = process.argv.includes('--corrections');
+  const portfolioMode = process.argv.includes('--portfolio') || correctionsMode;
   const messagingMode = process.argv.includes('--messaging');
   const reflectionsMode = process.argv.includes('--reflections');
   const participationMode = process.argv.includes('--participation') || portfolioMode;
@@ -82,6 +84,7 @@ try {
     activitySuite = activitySuite.replace('-- Access is derived live, including for closed listings, not cached in a JWT.',
       () => readFileSync(join(root, 'tests/security/participation-checks.sql'), 'utf8')
       + (portfolioMode ? '\n' + readFileSync(join(root, 'tests/security/portfolio-checks.sql'), 'utf8') : '')
+      + (correctionsMode ? '\n' + readFileSync(join(root, 'tests/security/hour-correction-checks.sql'), 'utf8') : '')
       + '\n-- Access is derived live, including for closed listings, not cached in a JWT.');
   }
   if (messagingMode) {
@@ -98,6 +101,25 @@ try {
     sql(readFileSync(join(root, 'supabase/migrations/20261009000001_activity_hub_foundation.sql'), 'utf8'));
     if (participationMode) sql(readFileSync(join(root, 'supabase/migrations/20261009000002_activity_participation.sql'), 'utf8'));
     if (portfolioMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000001_student_service_portfolio.sql'), 'utf8'));
+    if (correctionsMode) {
+      // Exercise installation over a pre-existing approval before transactional feature fixtures.
+      sql(`INSERT INTO public.opportunities(id,organizer_id,title,category,application_deadline)
+        VALUES('00000000-0000-0000-0000-000000000991','00000000-0000-0000-0000-000000000003','Baseline installation fixture','School-Based Service','2030-01-01');
+        INSERT INTO public.activity_hours(id,opportunity_id,student_id,student_name,service_date,hours,description,status,reviewed_by,reviewer_name,review_note,reviewed_at)
+        VALUES('00000000-0000-0000-0000-000000000992','00000000-0000-0000-0000-000000000991',
+          '00000000-0000-0000-0000-000000000002','Fixture student',current_date-10,2.75,'Existing approval','approved',
+          '00000000-0000-0000-0000-000000000003','Fixture reviewer','Original approval',now());`);
+      sql(readFileSync(join(root, 'supabase/migrations/20261011000005_service_hour_corrections.sql'), 'utf8'));
+      sql(`DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM public.activity_hour_reviews WHERE entry_id='00000000-0000-0000-0000-000000000992'
+          AND kind='baseline' AND before_state IS NULL AND reason='Original approval'
+          AND (after_state->>'hours')::numeric=2.75 AND after_state->>'status'='approved') THEN
+          RAISE EXCEPTION 'Existing reviewed entries were not preserved as labelled baselines';
+        END IF;
+      END; $$;
+      DELETE FROM public.activity_hours WHERE id='00000000-0000-0000-0000-000000000992';
+      DELETE FROM public.opportunities WHERE id='00000000-0000-0000-0000-000000000991';`);
+    }
     if (messagingMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000003_activity_group_messages.sql'), 'utf8'));
     if (reflectionsMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000004_private_activity_reflections.sql'), 'utf8'));
     sql(activitySuite);
@@ -110,6 +132,7 @@ try {
     console.log('PASS: Activity Hub permissions, CRUD, constraints, identity protection and revocation, both before and after school-access migration.');
     if (participationMode) console.log('PASS: private attendance, submit/edit/withdraw/review hours, stale versions, immutable reviews, no self-review, history retention and daily caps, before and after school-access migration.');
     if (portfolioMode) console.log('PASS: own service portfolio, approved-only totals, reviewer metadata, private historical access without restored membership, no other-user access or widened table RLS, before and after school-access migration.');
+    if (correctionsMode) console.log('PASS: authorised hour corrections, immutable original review, reason/amount validation, approved-only totals, safe retries, stale writes, private history and no self-correction.');
     if (messagingMode) console.log('PASS: private group messaging, server-derived sender, idempotent retries, rate limits, pagination, closed history and revoked access, before and after school-access migration.');
     if (reflectionsMode) console.log('PASS: author-only reflections, create/edit/delete, duplicate retries, stale versions, validation, private history after membership ends, pagination and no manager/admin access, before and after school-access migration.');
   }
@@ -125,6 +148,7 @@ try {
 ${readFileSync(join(root, 'supabase/tests/launch_security_checks.sql'), 'utf8')}`);
   console.log('PASS: school-access and private-profile policies, role-specific profile reads, saved-opportunity privacy, ownership, approval/revocation, audit, and public browsing.');
   if (participationMode) await checkParticipationConcurrency(sql, socket);
+  if (correctionsMode) await checkCorrectionConcurrency(sql, socket);
 } finally {
   if (started) run('pg_ctl', ['-D', data, '-m', 'immediate', '-w', 'stop']);
   rmSync(tmp, { recursive: true, force: true });

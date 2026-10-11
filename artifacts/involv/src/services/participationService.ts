@@ -1,12 +1,14 @@
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import type { AttendanceRecord, HoursEntry } from '../types';
+import { readHourHistory, type HourReview } from './hourCorrectionService';
 
 export interface ActivityAttendance extends AttendanceRecord {
   markedByName: string;
   updatedAt: string;
 }
 export interface ActivityHours extends HoursEntry {
+  reviewHistory: HourReview[];
   updatedAt: string;
   reviewerName: string;
   reviewNote: string;
@@ -22,7 +24,7 @@ export interface HoursInput { date: string; hours: number; description: string }
 type ParticipationResponse = {
   can_manage: boolean; can_submit: boolean;
   attendance: Database['public']['Tables']['activity_attendance']['Row'][];
-  hours: Database['public']['Tables']['activity_hours']['Row'][];
+  hours: (Database['public']['Tables']['activity_hours']['Row'] & { review_history?: unknown })[];
 };
 function failure(error: { code?: string; message?: string }) {
   let text = error.message || 'Could not save the record. Please try again.';
@@ -54,6 +56,7 @@ export async function getParticipation(opportunityId: string): Promise<Participa
       description: h.description, status: h.status, submittedAt: h.submitted_at,
       updatedAt: h.updated_at, reviewerName: h.reviewer_name,
       reviewNote: h.review_note, reviewedAt: h.reviewed_at,
+      reviewHistory: readHourHistory(h.review_history),
     })),
   };
 }

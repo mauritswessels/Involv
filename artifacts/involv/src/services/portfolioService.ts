@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
+import { readHourHistory, type HourReview } from './hourCorrectionService';
 
 export interface PortfolioEntry {
+  reviewHistory: HourReview[];
   id: string;
   opportunityId: string;
   activityTitle: string;
@@ -66,6 +68,7 @@ export async function getMyServicePortfolio(): Promise<ServicePortfolio> {
       submittedAt: text(row.submitted_at), updatedAt: text(row.updated_at),
       reviewerName: text(row.reviewer_name), reviewNote: text(row.review_note),
       reviewedAt: row.reviewed_at === null ? null : text(row.reviewed_at),
+      reviewHistory: readHourHistory(row.review_history),
     };
   });
   return {

@@ -9,6 +9,15 @@ export type ApplicationStatus = 'Pending' | 'Under Review' | 'Accepted' | 'Rejec
 export type Database = {
   public: {
     Tables: {
+      activity_hour_reviews: {
+        Row: {
+          id: string; entry_id: string; kind: 'baseline' | 'review' | 'correction';
+          actor_id: string | null; actor_name: string; reason: string;
+          before_state: Record<string, unknown> | null; after_state: Record<string, unknown>;
+          recorded_at: string;
+        };
+        Insert: never; Update: never; Relationships: [];
+      };
       activity_reflections: {
         Row: {
           id: string; opportunity_id: string | null; activity_title: string;
@@ -341,6 +350,13 @@ export type Database = {
         Args: {
           target_entry_id: string; decision: 'approved' | 'rejected';
           reviewer_note: string; expected_updated_at: string;
+        };
+        Returns: boolean;
+      };
+      correct_activity_hours: {
+        Args: {
+          target_entry_id: string; corrected_hours: number; corrected_status: 'approved' | 'rejected';
+          correction_reason: string; expected_updated_at: string; correction_id: string;
         };
         Returns: boolean;
       };
