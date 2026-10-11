@@ -33,6 +33,10 @@ sender IDs and timestamps are derived by the server. Sends are limited to 20 per
 minute per sender and 2,000 characters. Attachments, message editing/deletion,
 read receipts, presence and notifications are not part of this chunk.
 
+The later `MESSAGING_UPGRADE_SETUP.md` adds author edit/removal and RLS-protected
+Realtime signals while retaining polling/recovery. Follow that guide to finish
+the queued messaging scope; the original script alone does not activate it.
+
 Local checks: `pnpm --filter @workspace/involv run test:messaging` exercises
 messaging against disposable database fixtures before and after the school-access
 migration. It does not connect to or change hosted Supabase.

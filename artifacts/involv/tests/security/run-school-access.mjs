@@ -75,7 +75,8 @@ try {
   sql(`UPDATE auth.users SET email_confirmed_at = now() WHERE id = '00000000-0000-0000-0000-000000000001';`);
   const correctionsMode = process.argv.includes('--corrections');
   const portfolioMode = process.argv.includes('--portfolio') || correctionsMode;
-  const messagingMode = process.argv.includes('--messaging');
+  const messagingControlsMode = process.argv.includes('--messaging-controls');
+  const messagingMode = process.argv.includes('--messaging') || messagingControlsMode;
   const reflectionsMode = process.argv.includes('--reflections');
   const participationMode = process.argv.includes('--participation') || portfolioMode;
   const activityMode = process.argv.includes('--activity') || participationMode || messagingMode || reflectionsMode;
@@ -90,6 +91,7 @@ try {
   if (messagingMode) {
     activitySuite = activitySuite.replace('-- Access is derived live, including for closed listings, not cached in a JWT.',
       () => readFileSync(join(root, 'tests/security/messaging-checks.sql'), 'utf8')
+      + (messagingControlsMode ? '\n' + readFileSync(join(root, 'tests/security/messaging-controls-checks.sql'), 'utf8') : '')
       + '\n-- Access is derived live, including for closed listings, not cached in a JWT.');
   }
   if (reflectionsMode) {
@@ -121,6 +123,10 @@ try {
       DELETE FROM public.opportunities WHERE id='00000000-0000-0000-0000-000000000991';`);
     }
     if (messagingMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000003_activity_group_messages.sql'), 'utf8'));
+    if (messagingControlsMode) {
+      sql('CREATE PUBLICATION supabase_realtime;');
+      sql(readFileSync(join(root, 'supabase/migrations/20261011000006_messaging_controls_realtime.sql'), 'utf8'));
+    }
     if (reflectionsMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000004_private_activity_reflections.sql'), 'utf8'));
     sql(activitySuite);
   }
@@ -134,6 +140,7 @@ try {
     if (portfolioMode) console.log('PASS: own service portfolio, approved-only totals, reviewer metadata, private historical access without restored membership, no other-user access or widened table RLS, before and after school-access migration.');
     if (correctionsMode) console.log('PASS: authorised hour corrections, immutable original review, reason/amount validation, approved-only totals, safe retries, stale writes, private history and no self-correction.');
     if (messagingMode) console.log('PASS: private group messaging, server-derived sender, idempotent retries, rate limits, pagination, closed history and revoked access, before and after school-access migration.');
+    if (messagingControlsMode) console.log('PASS: author-only edit/delete, stable retries, stale versions, tombstones, loaded-page refresh, membership revocation and RLS-protected Realtime publication.');
     if (reflectionsMode) console.log('PASS: author-only reflections, create/edit/delete, duplicate retries, stale versions, validation, private history after membership ends, pagination and no manager/admin access, before and after school-access migration.');
   }
   // Also run the existing ownership/role suite against the new restrictions.

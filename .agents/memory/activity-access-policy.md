@@ -45,6 +45,19 @@ as stored history.
 channel authorization and revocation handling before replacing polling. Do not
 add simulated presence indicators or claim immediate delivery while polling.
 
+The subsequent messaging upgrade may use RLS-protected Postgres Changes as a
+refresh signal, but must retain permission-checked recovery and polling for
+missed events and revocation. Message text is editable/removable by its current
+author-member, unlike independently reviewed service-hour records.
+
+**Why:** Finishing the queued messaging requirements includes real-time updates
+and author controls, without authorising managers to impersonate other authors
+or treating informal conversation as an immutable school-credit decision.
+
+**How to apply:** Display connection status honestly, never display an event
+payload before current-access checks, and do not introduce public broadcasts.
+Removing message text leaves a visible marker; it is not a backup-purge promise.
+
 Service-hour corrections are a separate, reason-required management decision,
 not a student edit or an exception allowing an admin to approve their own hours.
 They may change the current reviewed amount or revoke/reinstate a decision, but

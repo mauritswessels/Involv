@@ -3,11 +3,21 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, SendIcon, UsersIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getActivityHub, type ActivityHubData } from '../services/activityService';
-import { listMessages, sendMessage, type ActivityMessage } from '../services/messageService';
+import { listMessages, messageUpdates, sendMessage, type ActivityMessage } from '../services/messageService';
+import { supabase } from '../lib/supabase';
+import MessageControls from '../components/activity/MessageControls';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function merge(previous: ActivityMessage[], incoming: ActivityMessage[]) {
-  return [...new Map([...previous, ...incoming].map(m => [m.id, m])).values()]
+  const result = new Map(previous.map(m => [m.id, m]));
+  const stamp = (m: ActivityMessage) => m.updated_at || m.created_at;
+  const micros = (s: string) => (s.match(/\.(\d+)/)?.[1] || '').padEnd(6, '0');
+  for (const m of incoming) {
+    const old = result.get(m.id);
+    if (!old || Date.parse(stamp(m)) > Date.parse(stamp(old))
+      || (Date.parse(stamp(m)) === Date.parse(stamp(old)) && micros(stamp(m)) >= micros(stamp(old)))) result.set(m.id, m);
+  }
+  return [...result.values()]
     .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id));
 }
 export default function ChatPage() {
@@ -26,8 +36,12 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
   const [olderBusy, setOlderBusy] = useState(false);
   const [hasOlder, setHasOlder] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [realtime, setRealtime] = useState(false);
+  const known = useRef<ActivityMessage[]>([]);
+  const liveChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const mounted = useRef(false);
   const syncing = useRef(false);
+  const refreshQueued = useRef(false);
   const sendBusy = useRef(false);
   const cursor = useRef<ActivityMessage | undefined>();
   const initialized = useRef(false);
@@ -43,15 +57,28 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
     if ((e as { code?: string })?.code === '42501') {
       denied.current = true;
       setMessages([]); setHub(null); setInput(''); retry.current = null;
+      known.current = []; setRealtime(false);
+      if (liveChannel.current) { void supabase.removeChannel(liveChannel.current); liveChannel.current = null; }
     }
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (syncing.current || denied.current) return;
+  const refresh = useCallback(async (): Promise<void> => {
+    if (denied.current) return;
+    if (syncing.current) { refreshQueued.current = true; return; }
     syncing.current = true;
     try {
       if (!UUID.test(opportunityId)) throw new Error('Invalid activity link. Open chat from the Activity Hub.');
       const nextHub = await getActivityHub(opportunityId);
+      // Refresh edits/tombstones for every loaded page, including older messages.
+      const ids = known.current.filter(m => m.updated_at).map(m => m.id);
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const requested = ids.slice(offset, offset + 100);
+        const changes = await messageUpdates(opportunityId, requested);
+        if (!mounted.current || denied.current) return;
+        const present = new Set(changes.map(m => m.id));
+        const requestedSet = new Set(requested);
+        setMessages(previous => merge(previous.filter(m => !requestedSet.has(m.id) || present.has(m.id)), changes));
+      }
       // The sync cursor advances only from fetched history, never from a local send.
       // Otherwise a just-sent message could skip peers' earlier unseen messages.
       for (let page = 0; page < 5; page++) {
@@ -65,8 +92,40 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
       }
       if (mounted.current && !denied.current) { setHub(nextHub); setReady(true); setError(''); }
     } catch (e) { report(e); }
-    finally { syncing.current = false; }
+    finally {
+      syncing.current = false;
+      if (refreshQueued.current) {
+        refreshQueued.current = false;
+        queueMicrotask(() => { if (mounted.current && !denied.current) void refresh(); });
+      }
+    }
   }, [opportunityId, report]);
+
+  useEffect(() => { known.current = messages; }, [messages]);
+  useEffect(() => {
+    if (!UUID.test(opportunityId) || !userId) return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const signal = () => {
+      if (!active || denied.current) return;
+      clearTimeout(timer);
+      // Never display a raw event payload: reload through current-membership RPCs.
+      timer = setTimeout(() => void refresh(), 150);
+    };
+    const channel = supabase.channel(`activity-messages:${opportunityId}:${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_messages', filter: `opportunity_id=eq.${opportunityId}` }, signal)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'activity_messages', filter: `opportunity_id=eq.${opportunityId}` }, signal)
+      .subscribe(status => {
+        if (!active || denied.current) return;
+        setRealtime(status === 'SUBSCRIBED');
+        if (status === 'SUBSCRIBED') signal();
+      });
+    liveChannel.current = channel;
+    return () => {
+      active = false; clearTimeout(timer); void supabase.removeChannel(channel);
+      if (liveChannel.current === channel) liveChannel.current = null;
+    };
+  }, [opportunityId, userId, refresh]);
 
   useEffect(() => {
     mounted.current = true;
@@ -135,7 +194,7 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
         <Link to={`/activity/${opportunityId}`} aria-label="Back to Activity Hub" className="p-2 text-slate-500"><ArrowLeftIcon size={16} /></Link>
         <div className="min-w-0 flex-1">
           <h1 className="text-sm font-semibold text-slate-900 truncate">{hub?.opportunity.title ?? 'Activity group chat'}</h1>
-          <p role="status" className="text-xs text-slate-500">{ready ? 'Connected · checks for new messages every 5 seconds' : error ? 'Not connected' : 'Connecting…'}</p>
+          <p role="status" className="text-xs text-slate-500">{ready ? realtime ? 'Real-time connected · access checked every 5 seconds' : 'Polling connected · checks every 5 seconds' : error ? 'Not connected' : 'Connecting…'}</p>
         </div>
         <button aria-label="Toggle participant list" aria-expanded={showMembers} onClick={() => setShowMembers(v => !v)} className="p-2 text-blue-900"><UsersIcon size={18} /></button>
       </header>
@@ -157,7 +216,11 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
                     {message.sender_role !== 'student' && <span className="ml-2 capitalize">{message.sender_role}</span>}
                     <time className="ml-2" dateTime={message.created_at}>{new Date(message.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</time>
                   </div>
-                  <p className={`px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${message.sender_id === userId ? 'bg-blue-900 text-white' : 'bg-white border border-slate-200 text-slate-900'}`}>{message.content}</p>
+                  <p className={`px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${message.sender_id === userId ? 'bg-blue-900 text-white' : 'bg-white border border-slate-200 text-slate-900'}`}>{message.deleted_at ? 'Message removed' : message.content}</p>
+                  {message.edited_at && !message.deleted_at && <p className="text-xs text-slate-500 mt-1">Edited {new Date(message.edited_at).toLocaleString('en-GB')}</p>}
+                  {message.sender_id === userId && <MessageControls message={message} enabled={ready}
+                    onChanged={next => { if (mounted.current && !denied.current) setMessages(previous => merge(previous, [next])); }}
+                    onDenied={report} />}
                 </div>
               </article>
             ))}

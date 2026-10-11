@@ -29,6 +29,7 @@ export type Database = {
         Row: {
           id: string; opportunity_id: string; sender_id: string; sender_name: string;
           sender_role: string; content: string; client_nonce: string; created_at: string;
+          updated_at: string; edited_at: string | null; deleted_at: string | null;
         };
         Insert: never;
         Update: never;
@@ -321,6 +322,14 @@ export type Database = {
       };
       list_activity_messages: {
         Args: { target_opportunity_id: string; cursor_time: string | null; cursor_id: string | null; newer: boolean };
+        Returns: unknown;
+      };
+      change_my_activity_message: {
+        Args: { target_message_id: string; replacement_content: string | null; expected_updated_at: string; remove_message: boolean };
+        Returns: unknown;
+      };
+      get_activity_message_updates: {
+        Args: { target_opportunity_id: string; message_ids: string[] };
         Returns: unknown;
       };
       get_my_service_portfolio: {
