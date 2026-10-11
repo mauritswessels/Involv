@@ -31,3 +31,16 @@ former groups or disclosing other students' information.
 **How to apply:** Provide narrowly projected, read-only own-ledger access using
 the current verified identity. Do not broaden activity table policies, accept a
 client-selected student ID, or unlock former rosters, attendance, hubs or chats.
+
+Group-message delivery must recheck current membership on the server, not expose
+private payloads through a public broadcast and filter them only in the browser.
+The initial rollout uses permission-checked polling so a separate Supabase
+Realtime configuration is not required for this backend chunk.
+
+**Why:** Activity development must remain independent of institutional OAuth
+approval, and losing membership must remove access to future messages as well
+as stored history.
+
+**How to apply:** A later Realtime implementation needs equivalent private
+channel authorization and revocation handling before replacing polling. Do not
+add simulated presence indicators or claim immediate delivery while polling.

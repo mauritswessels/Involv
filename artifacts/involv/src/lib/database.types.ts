@@ -9,6 +9,15 @@ export type ApplicationStatus = 'Pending' | 'Under Review' | 'Accepted' | 'Rejec
 export type Database = {
   public: {
     Tables: {
+      activity_messages: {
+        Row: {
+          id: string; opportunity_id: string; sender_id: string; sender_name: string;
+          sender_role: string; content: string; client_nonce: string; created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       activity_attendance: {
         Row: {
           id: string; opportunity_id: string; session_id: string; student_id: string;
@@ -278,6 +287,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      send_activity_message: {
+        Args: { target_opportunity_id: string; message_content: string; request_nonce: string };
+        Returns: unknown;
+      };
+      list_activity_messages: {
+        Args: { target_opportunity_id: string; cursor_time: string | null; cursor_id: string | null; newer: boolean };
+        Returns: unknown;
+      };
       get_my_service_portfolio: {
         Args: Record<never, never>;
         Returns: unknown;

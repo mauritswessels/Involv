@@ -1,322 +1,184 @@
-import { useState, useRef, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeftIcon, SendIcon, UsersIcon, PaperclipIcon, SmileIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { ArrowLeftIcon, SendIcon, UsersIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { mockOpportunities, mockIncomingApplications } from '../data/mockData';
+import { getActivityHub, type ActivityHubData } from '../services/activityService';
+import { listMessages, sendMessage, type ActivityMessage } from '../services/messageService';
 
-type PresenceStatus = 'online' | 'away' | 'offline';
-
-// Mock presence — in production this comes from Supabase Realtime presence
-const MOCK_PRESENCE: Record<string, PresenceStatus> = {
-  'organizer-1': 'online',
-  'student-priya': 'online',
-  'student-marcus': 'away',
-  'student-chloe': 'offline',
-  'student-daniel': 'offline',
-};
-
-function PresenceDot({ status }: { status: PresenceStatus }) {
-  const colours = {
-    online: 'bg-green-500',
-    away: 'bg-orange-400',
-    offline: 'bg-slate-300',
-  };
-  const labels = { online: 'Online', away: 'Away', offline: 'Offline' };
-  return (
-    <span
-      className={`w-2.5 h-2.5 rounded-full border-2 border-white shrink-0 ${colours[status]}`}
-      title={labels[status]}
-    />
-  );
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function merge(previous: ActivityMessage[], incoming: ActivityMessage[]) {
+  return [...new Map([...previous, ...incoming].map(m => [m.id, m])).values()]
+    .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id));
 }
-
-interface Message {
-  id: string;
-  senderId: string;
-  senderName: string;
-  senderRole: 'student' | 'teacher' | 'organizer';
-  content: string;
-  createdAt: string;
-}
-
-const MOCK_MESSAGES: Message[] = [
-  {
-    id: 'm1',
-    senderId: 'organizer-1',
-    senderName: 'Mr. Okonkwo',
-    senderRole: 'organizer',
-    content: 'Welcome everyone to the Peer Tutoring Programme! Really glad to have you all on board.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: 'm2',
-    senderId: 'organizer-1',
-    senderName: 'Mr. Okonkwo',
-    senderRole: 'organizer',
-    content: 'Our first session will be this Thursday at 3:30pm in Room 214. Please bring any materials you think will help your tutees.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 23).toISOString(),
-  },
-  {
-    id: 'm3',
-    senderId: 'student-priya',
-    senderName: 'Priya Sharma',
-    senderRole: 'student',
-    content: 'Thanks Mr. Okonkwo! Should we prepare anything specific for the first session?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
-  },
-  {
-    id: 'm4',
-    senderId: 'organizer-1',
-    senderName: 'Mr. Okonkwo',
-    senderRole: 'organizer',
-    content: 'Good question Priya. Just bring a positive attitude for now! We\'ll assign tutees next week once we\'ve assessed their needs.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 21).toISOString(),
-  },
-  {
-    id: 'm5',
-    senderId: 'student-marcus',
-    senderName: 'Marcus Adeyemi',
-    senderRole: 'student',
-    content: 'Looking forward to it! Is there a sign-in sheet or do we just show up?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-];
-
-function formatTime(iso: string) {
-  const date = new Date(iso);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
-  if (diffDays === 0) return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  if (diffDays === 1) return 'Yesterday';
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
-
-function getInitials(name: string) {
-  return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-}
-
-const ROLE_COLOURS: Record<string, string> = {
-  organizer: 'bg-blue-900',
-  teacher: 'bg-violet-700',
-  student: 'bg-slate-500',
-};
-
 export default function ChatPage() {
-  const { opportunityId } = useParams<{ opportunityId: string }>();
+  const { opportunityId = '' } = useParams();
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES);
-  const [input, setInput] = useState('');
-  const [showMembers, setShowMembers] = useState(true);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  return <ActivityChat key={`${opportunityId}:${user?.id}:${user?.role}`} opportunityId={opportunityId} userId={user?.id ?? ''} />;
+}
 
-  const opportunity = mockOpportunities.find(o => o.id === opportunityId);
-  const acceptedMembers = mockIncomingApplications.filter(
-    a => a.opportunityId === opportunityId && a.status === 'Accepted',
-  );
+function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId: string }) {
+  const [hub, setHub] = useState<ActivityHubData | null>(null);
+  const [messages, setMessages] = useState<ActivityMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [error, setError] = useState('');
+  const [ready, setReady] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [olderBusy, setOlderBusy] = useState(false);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
+  const mounted = useRef(false);
+  const syncing = useRef(false);
+  const sendBusy = useRef(false);
+  const cursor = useRef<ActivityMessage | undefined>();
+  const initialized = useRef(false);
+  const retry = useRef<{ text: string; nonce: string } | null>(null);
+  const messageList = useRef<HTMLDivElement>(null);
+  const followBottom = useRef(true);
+  const denied = useRef(false);
+
+  const report = useCallback((e: unknown) => {
+    if (!mounted.current) return;
+    setError(e instanceof Error ? e.message : 'Could not load chat. Please retry.');
+    setReady(false);
+    if ((e as { code?: string })?.code === '42501') {
+      denied.current = true;
+      setMessages([]); setHub(null); setInput(''); retry.current = null;
+    }
+  }, []);
+
+  const refresh = useCallback(async () => {
+    if (syncing.current || denied.current) return;
+    syncing.current = true;
+    try {
+      if (!UUID.test(opportunityId)) throw new Error('Invalid activity link. Open chat from the Activity Hub.');
+      const nextHub = await getActivityHub(opportunityId);
+      // The sync cursor advances only from fetched history, never from a local send.
+      // Otherwise a just-sent message could skip peers' earlier unseen messages.
+      for (let page = 0; page < 5; page++) {
+        const batch = await listMessages(opportunityId, cursor.current, initialized.current);
+        if (!mounted.current || denied.current) return;
+        setMessages(previous => merge(previous, batch));
+        if (!initialized.current) setHasOlder(batch.length === 50);
+        initialized.current = true;
+        if (batch.length) cursor.current = batch[batch.length - 1];
+        if (batch.length < 50) break;
+      }
+      if (mounted.current && !denied.current) { setHub(nextHub); setReady(true); setError(''); }
+    } catch (e) { report(e); }
+    finally { syncing.current = false; }
+  }, [opportunityId, report]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSend = () => {
-    if (!input.trim() || !user) return;
-    const newMsg: Message = {
-      id: `m-${Date.now()}`,
-      senderId: user.id,
-      senderName: user.name,
-      senderRole: user.role as 'student' | 'teacher' | 'organizer',
-      content: input.trim(),
-      createdAt: new Date().toISOString(),
+    mounted.current = true;
+    void refresh();
+    const update = () => { if (!document.hidden) void refresh(); };
+    const interval = window.setInterval(update, 5000);
+    window.addEventListener('focus', update);
+    window.addEventListener('online', update);
+    return () => {
+      mounted.current = false;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', update);
+      window.removeEventListener('online', update);
     };
-    setMessages(prev => [...prev, newMsg]);
-    setInput('');
-    inputRef.current?.focus();
-  };
+  }, [refresh]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  useEffect(() => {
+    const list = messageList.current;
+    if (list && followBottom.current) {
+      list.scrollTop = list.scrollHeight;
     }
-  };
+  }, [messages, sending]);
 
-  if (!opportunity) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-slate-500">Opportunity not found.</p>
-      </div>
-    );
+  async function loadOlder() {
+    if (olderBusy || !messages.length) return;
+    setOlderBusy(true);
+    followBottom.current = false;
+    const list = messageList.current;
+    const height = list?.scrollHeight ?? 0;
+    const position = list?.scrollTop ?? 0;
+    try {
+      const batch = await listMessages(opportunityId, messages[0]);
+      if (mounted.current && !denied.current) {
+        setMessages(previous => merge(previous, batch)); setHasOlder(batch.length === 50);
+        requestAnimationFrame(() => {
+          if (list) list.scrollTop = position + list.scrollHeight - height;
+        });
+      }
+    } catch (e) { report(e); }
+    finally { if (mounted.current) setOlderBusy(false); }
+  }
+
+  async function send(e?: FormEvent) {
+    e?.preventDefault();
+    const text = input.trim();
+    if (!ready || !text || text.length > 2000 || sendBusy.current || denied.current) return;
+    if (retry.current?.text !== text) retry.current = { text, nonce: crypto.randomUUID() };
+    sendBusy.current = true; setSending(true); setError('');
+    try {
+      const message = await sendMessage(opportunityId, text, retry.current.nonce);
+      if (!mounted.current || denied.current) return;
+      followBottom.current = true;
+      setMessages(previous => merge(previous, [message]));
+      setInput(''); retry.current = null;
+      void refresh();
+    } catch (e) {
+      // A failed/uncertain write preserves both the draft and retry ID.
+      if ((e as { code?: string })?.code === '42501') report(e);
+      else if (mounted.current) setError(e instanceof Error ? e.message : 'Sending failed. Retry your draft.');
+    } finally { sendBusy.current = false; if (mounted.current) setSending(false); }
   }
 
   return (
-    <div className="h-[calc(100vh-56px)] flex flex-col bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <Link
-            to={`/applications/${opportunityId}`}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0"
-          >
-            <ArrowLeftIcon size={16} />
-          </Link>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900 truncate">{opportunity.title}</p>
-            <p className="text-xs text-slate-500">{acceptedMembers.length + 1} members</p>
-          </div>
+    <div className="h-[calc(100dvh-56px)] flex flex-col bg-slate-50">
+      <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
+        <Link to={`/activity/${opportunityId}`} aria-label="Back to Activity Hub" className="p-2 text-slate-500"><ArrowLeftIcon size={16} /></Link>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-sm font-semibold text-slate-900 truncate">{hub?.opportunity.title ?? 'Activity group chat'}</h1>
+          <p role="status" className="text-xs text-slate-500">{ready ? 'Connected · checks for new messages every 5 seconds' : error ? 'Not connected' : 'Connecting…'}</p>
         </div>
-        <button
-          onClick={() => setShowMembers(v => !v)}
-          className={`p-2 rounded-lg transition-colors shrink-0 ${showMembers ? 'bg-blue-50 text-blue-900' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
-          title="Toggle member list"
-        >
-          <UsersIcon size={16} />
-        </button>
-      </div>
-
-      <div className="flex flex-1 min-h-0">
-        {/* Chat area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-            {messages.map((msg, i) => {
-              const isMe = msg.senderId === user?.id;
-              const prevMsg = messages[i - 1];
-              const showHeader = !prevMsg || prevMsg.senderId !== msg.senderId;
-              const avatarColor = ROLE_COLOURS[msg.senderRole] ?? 'bg-slate-400';
-
-              return (
-                <div key={msg.id} className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
-                  {/* Avatar */}
-                  {showHeader ? (
-                    <div className={`w-7 h-7 rounded-full ${avatarColor} text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5`}>
-                      {getInitials(msg.senderName)}
-                    </div>
-                  ) : (
-                    <div className="w-7 shrink-0" />
-                  )}
-
-                  <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
-                    {showHeader && (
-                      <div className={`flex items-baseline gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
-                        <span className="text-xs font-semibold text-slate-700">{isMe ? 'You' : msg.senderName}</span>
-                        {msg.senderRole !== 'student' && (
-                          <span className="text-xs text-blue-900 font-medium capitalize">{msg.senderRole}</span>
-                        )}
-                        <span className="text-xs text-slate-400">{formatTime(msg.createdAt)}</span>
-                      </div>
-                    )}
-                    <div className={`px-3 py-2 rounded-2xl text-sm leading-relaxed ${
-                      isMe
-                        ? 'bg-blue-900 text-white rounded-tr-sm'
-                        : 'bg-white border border-slate-200 text-slate-900 rounded-tl-sm'
-                    }`}>
-                      {msg.content}
-                    </div>
+        <button aria-label="Toggle participant list" aria-expanded={showMembers} onClick={() => setShowMembers(v => !v)} className="p-2 text-blue-900"><UsersIcon size={18} /></button>
+      </header>
+      {error && <div role="alert" className="p-3 bg-red-50 text-red-800 text-sm">{error}
+        {!denied.current && <button className="underline ml-2" onClick={() => void refresh()}>Retry connection</button>}
+      </div>}
+      <div className="flex flex-1 min-h-0 relative">
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div ref={messageList} aria-label="Group messages"
+            onScroll={e => { const list = e.currentTarget; followBottom.current = list.scrollHeight - list.scrollTop - list.clientHeight < 100; }}
+            className="flex-1 overflow-y-auto p-4 space-y-4">
+            {hasOlder && <button disabled={olderBusy} onClick={() => void loadOlder()} className="btn-secondary text-xs">{olderBusy ? 'Loading…' : 'Load earlier messages'}</button>}
+            {ready && !messages.length && <p className="text-center text-sm text-slate-500 py-8">No messages yet. Start the conversation.</p>}
+            {messages.map(message => (
+              <article key={message.id} className={`flex ${message.sender_id === userId ? 'justify-end' : 'justify-start'}`}>
+                <div className="max-w-[85%] sm:max-w-[70%]">
+                  <div className="text-xs text-slate-500 mb-1">
+                    <span className="font-semibold">{message.sender_id === userId ? 'You' : message.sender_name}</span>
+                    {message.sender_role !== 'student' && <span className="ml-2 capitalize">{message.sender_role}</span>}
+                    <time className="ml-2" dateTime={message.created_at}>{new Date(message.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</time>
                   </div>
+                  <p className={`px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${message.sender_id === userId ? 'bg-blue-900 text-white' : 'bg-white border border-slate-200 text-slate-900'}`}>{message.content}</p>
                 </div>
-              );
-            })}
-            <div ref={bottomRef} />
+              </article>
+            ))}
           </div>
-
-          {/* Input */}
-          <div className="border-t border-slate-200 bg-white px-4 py-3 shrink-0">
+          <form onSubmit={send} className="border-t border-slate-200 bg-white p-3">
             <div className="flex items-end gap-2">
-              <button className="p-2 text-slate-400 hover:text-slate-600 shrink-0 mb-0.5">
-                <PaperclipIcon size={16} />
-              </button>
-              <div className="flex-1 relative">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Write a message… (Enter to send)"
-                  rows={1}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 resize-none focus:outline-none focus:border-blue-900 focus:ring-1 focus:ring-blue-900 max-h-32 leading-relaxed"
-                  style={{ minHeight: '38px' }}
-                />
-              </div>
-              <button className="p-2 text-slate-400 hover:text-slate-600 shrink-0 mb-0.5">
-                <SmileIcon size={16} />
-              </button>
-              <button
-                onClick={handleSend}
-                disabled={!input.trim()}
-                className="p-2 bg-blue-900 text-white rounded-xl hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0 mb-0.5"
-              >
-                <SendIcon size={15} />
-              </button>
+              <textarea aria-label="Message" value={input} disabled={!ready || sending} maxLength={2000}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }}
+                placeholder="Write a message…" rows={2}
+                className="flex-1 min-w-0 border border-slate-200 rounded-xl p-2 text-sm resize-none disabled:opacity-50" />
+              <button aria-label="Send message" disabled={!ready || sending || !input.trim()} className="p-3 bg-blue-900 text-white rounded-xl disabled:opacity-40"><SendIcon size={16} /></button>
             </div>
-            <p className="text-xs text-slate-400 mt-1 ml-10">Shift+Enter for new line</p>
-          </div>
+            <p className="text-xs text-slate-500 mt-1">Shift+Enter for a new line · {input.length}/2000{sending && ' · Sending…'}</p>
+          </form>
         </div>
-
-        {/* Member list */}
-        {showMembers && (
-          <div className="w-60 border-l border-slate-200 bg-white flex flex-col shrink-0">
-            <div className="px-4 py-3 border-b border-slate-100">
-              <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Members</p>
-            </div>
-            <div className="flex-1 overflow-y-auto py-2">
-              {/* Organiser */}
-              <div className="px-3 py-1">
-                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1.5 px-1">Organiser</p>
-                <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg">
-                  <div className="relative shrink-0">
-                    <div className="w-7 h-7 rounded-full bg-blue-900 text-white text-xs font-semibold flex items-center justify-center">
-                      {getInitials(opportunity.organizerName)}
-                    </div>
-                    <span className="absolute -bottom-0.5 -right-0.5">
-                      <PresenceDot status={MOCK_PRESENCE['organizer-1'] ?? 'offline'} />
-                    </span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-900 truncate">{opportunity.organizerName}</p>
-                    <p className="text-xs text-slate-400 capitalize">{opportunity.organizerRole}</p>
-                  </div>
-                  <PresenceDot status={MOCK_PRESENCE['organizer-1'] ?? 'offline'} />
-                </div>
-              </div>
-
-              {/* Students */}
-              {acceptedMembers.length > 0 && (
-                <div className="px-3 py-1 mt-2">
-                  <p className="text-xs text-slate-400 uppercase tracking-wide mb-1.5 px-1">
-                    Students ({acceptedMembers.length})
-                  </p>
-                  {acceptedMembers.map(member => {
-                    const presenceKey = `student-${member.applicantName.split(' ')[0].toLowerCase()}`;
-                    const status = MOCK_PRESENCE[presenceKey] ?? 'offline';
-                    return (
-                      <div key={member.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50">
-                        <div className="relative shrink-0">
-                          <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold flex items-center justify-center">
-                            {getInitials(member.applicantName)}
-                          </div>
-                          <span className="absolute -bottom-0.5 -right-0.5">
-                            <PresenceDot status={status} />
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium text-slate-900 truncate">{member.applicantName}</p>
-                          <p className="text-xs text-slate-400 capitalize">{status === 'online' ? 'Online' : status === 'away' ? 'Away' : 'Offline'}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {acceptedMembers.length === 0 && (
-                <p className="text-xs text-slate-400 px-4 py-3">
-                  No accepted students yet.
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+        {showMembers && hub && <aside aria-label="Accepted participants" className="absolute right-0 inset-y-0 w-60 sm:static bg-white border-l border-slate-200 p-4 overflow-y-auto shadow-sm">
+          <h2 className="text-sm font-semibold mb-3">Accepted participants ({hub.participants.length})</h2>
+          <p className="text-xs text-slate-500 mb-3">Approved activity managers and school admins also have chat access. Online status is not tracked.</p>
+          <ul className="space-y-2 text-sm">{hub.participants.map(p => <li key={p.id}>{p.name}</li>)}</ul>
+        </aside>}
       </div>
     </div>
   );

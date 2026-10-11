@@ -89,6 +89,7 @@ export default function ActivityHubFoundation() {
               <h1 className="text-sm font-semibold text-slate-900 truncate">{hub.opportunity.title}</h1>
               <p className="text-xs text-slate-500">Activity hub · {hub.canManage ? 'Manager access' : 'Participant access'}</p>
             </div>
+            <Link to={`/chat/${opportunityId}`} className="btn-secondary text-xs shrink-0">Group chat</Link>
           </div>
           <div className="flex overflow-x-auto scrollbar-hide -mb-px" role="tablist" aria-label="Activity hub sections">
             {['Announcements', 'Sessions', 'Attendance', 'Hours', ...DEFERRED].map(label => (
