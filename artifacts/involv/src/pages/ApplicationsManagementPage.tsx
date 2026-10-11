@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { getOrganizerOpportunities } from '../services/opportunityService';
 import { getOpportunityApplications, updateApplicationStatus } from '../services/applicationService';
 import type { Application, ApplicationStatus, Opportunity } from '../types';
+import { logSafeError } from '../utils/safeConsole';
 
 type FilterTab = 'All' | ApplicationStatus;
 
@@ -37,14 +38,16 @@ export default function ApplicationsManagementPage() {
         setOpportunity(opp);
         setApplications(apps);
       })
-      .catch(console.error)
+      .catch(err => logSafeError('[Applications] failed to load', err))
       .finally(() => setLoading(false));
   }, [user?.id, opportunityId]);
 
   const updateStatus = (id: string, status: ApplicationStatus) => {
     setApplications(prev => prev.map(a => (a.id === id ? { ...a, status } : a)));
     if (viewApp?.id === id) setViewApp(prev => prev ? { ...prev, status } : prev);
-    updateApplicationStatus(id, status).catch(console.error);
+    updateApplicationStatus(id, status).catch(err =>
+      logSafeError('[Applications] update status failed', err),
+    );
   };
 
   const handleBulkStatus = async (status: ApplicationStatus) => {
@@ -55,7 +58,13 @@ export default function ApplicationsManagementPage() {
     setApplications(prev => prev.map(a => selectedIds.has(a.id) ? { ...a, status } : a));
     setSelectedIds(new Set());
     // Persist all in parallel
-    await Promise.all(ids.map(id => updateApplicationStatus(id, status).catch(console.error)));
+    await Promise.all(
+      ids.map(id =>
+        updateApplicationStatus(id, status).catch(err =>
+          logSafeError('[Applications] bulk status update failed', err),
+        ),
+      ),
+    );
     setBulking(false);
   };
 

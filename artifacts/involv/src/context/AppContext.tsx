@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Application, ApplicationStatus } from '../types';
+import { logSafeError } from '../utils/safeConsole';
 import { useAuth } from './AuthContext';
 import { getSavedOpportunityIds, saveOpportunity, unsaveOpportunity } from '../services/savedService';
 import { getStudentApplications, createApplication, updateApplicationStatus as persistStatus, withdrawApplication as persistWithdraw } from '../services/applicationService';
@@ -57,7 +58,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setSavedIds(new Set(ids));
         setApplications(apps);
       })
-      .catch(err => console.error('[App] failed to load user data:', err))
+      .catch(err => logSafeError('[App] failed to load user data', err))
       .finally(() => setLoading(false));
   }, [user?.id]);
 
@@ -83,7 +84,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     (wasSaved ? unsaveOpportunity(user.id, id) : saveOpportunity(user.id, id))
       .catch(err => {
-        console.error('[App] toggleSave failed:', err);
+        logSafeError('[App] toggleSave failed', err);
         rollback();
       });
   };
@@ -93,7 +94,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newApp = await createApplication(application);
     setApplications(prev => [newApp, ...prev]);
     // Increment count asynchronously — failure is non-critical
-    incrementApplicantsCount(application.opportunityId).catch(console.error);
+    incrementApplicantsCount(application.opportunityId).catch(err =>
+      logSafeError('[App] applicant count increment failed', err),
+    );
   };
 
   // Optimistic status update for organizers
@@ -102,7 +105,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       prev.map(a => (a.id === applicationId ? { ...a, status } : a)),
     );
     persistStatus(applicationId, status).catch(err =>
-      console.error('[App] updateApplicationStatus failed:', err),
+      logSafeError('[App] updateApplicationStatus failed', err),
     );
   };
 
@@ -113,7 +116,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       await persistWithdraw(applicationId);
     } catch (err) {
-      console.error('[App] withdrawApplication failed:', err);
+      logSafeError('[App] withdrawApplication failed', err);
       if (removed) setApplications(prev => [removed, ...prev]);
       throw err;
     }

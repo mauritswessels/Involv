@@ -4,6 +4,7 @@ import { ArrowLeftIcon, CheckIcon, XCircleIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getOrganizerOpportunities, updateOpportunity, setOpportunityStatus } from '../services/opportunityService';
 import type { Opportunity } from '../types';
+import { logSafeError } from '../utils/safeConsole';
 
 const CATEGORIES = [
   'Community & Social Impact',
@@ -108,7 +109,7 @@ export default function EditOpportunityPage() {
           });
         }
       })
-      .catch(console.error)
+      .catch(err => logSafeError('[Opportunity] failed to load for editing', err))
       .finally(() => setLoading(false));
   }, [user?.id, id]);
 

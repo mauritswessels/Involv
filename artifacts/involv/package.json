@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test:security": "node tests/security/run-launch-security-checks.mjs",
+    "test:console-privacy": "pnpm run build && node tests/security/console-privacy.mjs",
     "test:school-access": "node tests/security/run-school-access.mjs",
     "test:activity": "node tests/security/run-school-access.mjs --activity",
     "test:participation": "node tests/security/run-school-access.mjs --participation",

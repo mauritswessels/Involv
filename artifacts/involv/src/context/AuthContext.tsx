@@ -5,6 +5,7 @@ import { signInWithGoogle as sbSignIn, signOutUser } from '../services/authServi
 import { getProfileById, createProfile, updateProfile } from '../services/userService';
 import { hasSchoolAccess, SCHOOL_ACCESS_MESSAGE } from '../lib/schoolAccess';
 import type { User } from '../types';
+import { logSafeError } from '../utils/safeConsole';
 
 interface AuthContextType {
   user: User | null;
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       if (!isCurrent()) return;
-      console.error('[Auth] profile loading failed');
+      logSafeError('[Auth] profile loading failed', err);
       setAuthError('We could not load your school account. Please try signing in again.');
       setUser(null);
       setNeedsOnboarding(false);

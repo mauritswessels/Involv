@@ -10,9 +10,10 @@
 
 import { supabase } from '../lib/supabase';
 import { mockOpportunities } from '../data/mockData';
+import { logSafeError, logSafeInfo } from './safeConsole';
 
 async function seedOpportunities(): Promise<void> {
-  console.log('[Seed] Starting — inserting', mockOpportunities.length, 'opportunities…');
+  logSafeInfo('[Seed] Starting opportunity seed', mockOpportunities.length);
 
   const rows = mockOpportunities.map(o => ({
     // No organizer_id for seeded data — these are demo listings
@@ -51,12 +52,11 @@ async function seedOpportunities(): Promise<void> {
     .select('id, title');
 
   if (error) {
-    console.error('[Seed] Error:', error.message);
+    logSafeError('[Seed] Opportunity seed failed', error);
     throw error;
   }
 
-  console.log('[Seed] Done! Inserted', data?.length, 'opportunities:');
-  data?.forEach(r => console.log(' •', r.title));
+  logSafeInfo('[Seed] Opportunity seed completed', data?.length);
 }
 
 // Expose on window in dev mode for easy console access

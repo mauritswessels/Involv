@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { logSafeError } from '../../utils/safeConsole';
 
 type Props = {
   children: ReactNode;
@@ -16,8 +17,7 @@ export default class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[Involv] Unhandled interface error', {
-      error,
+    logSafeError('[Involv] Unhandled interface error', error, {
       componentStack: info.componentStack,
     });
   }

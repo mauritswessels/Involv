@@ -4,6 +4,7 @@ import {
   type ErrorInfo,
   type ReactNode,
 } from 'react';
+import { logSafeError } from '../utils/safeConsole';
 
 export interface ErrorFallbackProps {
   error: Error;
@@ -75,11 +76,9 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error(
-      'ErrorBoundary caught an error:',
-      toError(error),
-      info.componentStack,
-    );
+    logSafeError('ErrorBoundary caught an error', error, {
+      componentStack: info.componentStack,
+    });
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps): void {

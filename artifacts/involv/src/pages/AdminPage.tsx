@@ -25,6 +25,7 @@ function downloadCSV(filename: string, rows: Record<string, unknown>[]) {
 import { CategoryBadge } from '../components/ui/Badge';
 import { StatusChip } from '../components/ui/StatusChip';
 import type { User, Opportunity, Application, UserRole, ApplicationStatus } from '../types';
+import { logSafeError } from '../utils/safeConsole';
 import {
   getAllProfiles,
   getAllOpportunitiesAdmin,
@@ -141,7 +142,7 @@ export default function AdminPage() {
       setUsers(prev => prev.filter(u => u.id !== uid));
       setConfirmDeleteUser(null);
     } catch (err) {
-      console.error('[Admin] deleteUser:', err);
+      logSafeError('[Admin] delete user failed', err);
     } finally {
       setDeleting(false);
     }
@@ -151,13 +152,13 @@ export default function AdminPage() {
   const handleStatusChange = async (id: string, status: typeof STATUSES[number]) => {
     setOpportunities(prev => prev.map(o => (o.id === id ? { ...o, status } : o)));
     try { await adminSetOpportunityStatus(id, status); }
-    catch (err) { console.error('[Admin] setStatus:', err); }
+    catch (err) { logSafeError('[Admin] set opportunity status failed', err); }
   };
 
   const handleFeatureToggle = async (id: string, featured: boolean) => {
     setOpportunities(prev => prev.map(o => (o.id === id ? { ...o, featured } : o)));
     try { await setOpportunityFeatured(id, featured); }
-    catch (err) { console.error('[Admin] setFeatured:', err); }
+    catch (err) { logSafeError('[Admin] feature opportunity failed', err); }
   };
 
   const handleDeleteOpp = async (id: string) => {
@@ -168,7 +169,7 @@ export default function AdminPage() {
       setApplications(prev => prev.filter(a => a.opportunityId !== id));
       setConfirmDeleteOpp(null);
     } catch (err) {
-      console.error('[Admin] deleteOpp:', err);
+      logSafeError('[Admin] delete opportunity failed', err);
     } finally {
       setDeleting(false);
     }
