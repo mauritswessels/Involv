@@ -7,7 +7,6 @@ import {
   CheckIcon,
   ClockIcon,
   GlobeIcon,
-  MailIcon,
   MapPinIcon,
   UsersIcon,
 } from 'lucide-react';
@@ -21,7 +20,7 @@ import { useAuth } from '../context/AuthContext';
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isSaved, toggleSave, isApplied } = useApp();
+  const { isSaved, toggleSave, isApplied, isSaving } = useApp();
   const { isAuthenticated } = useAuth();
   const { opportunities, loading } = useOpportunities();
   const [applyOpen, setApplyOpen] = useState(false);
@@ -88,6 +87,8 @@ export default function OpportunityDetailPage() {
                 {isAuthenticated && (
                   <button
                     onClick={() => toggleSave(opportunity.id)}
+                    disabled={isSaving(opportunity.id)}
+                    aria-busy={isSaving(opportunity.id)}
                     aria-label={saved ? 'Remove from saved' : 'Save'}
                     className={`shrink-0 p-2 rounded-lg border transition-colors ${
                       saved
@@ -234,13 +235,7 @@ export default function OpportunityDetailPage() {
                 <p className="text-xs text-slate-500 mb-1">Posted by</p>
                 <p className="text-sm font-medium text-slate-900">{opportunity.organizerName}</p>
                 <p className="text-xs text-slate-500">{opportunity.organizerRole}</p>
-                <a
-                  href={`mailto:${opportunity.organizerEmail}`}
-                  className="flex items-center gap-1.5 text-xs text-blue-900 hover:underline mt-2"
-                >
-                  <MailIcon size={12} />
-                  {opportunity.organizerEmail}
-                </a>
+                <p className="text-xs text-slate-500 mt-2">Apply through Involv. Accepted participants can use the activity group.</p>
               </div>
 
               <div className="border-t border-slate-100 pt-4 space-y-2">
@@ -277,6 +272,8 @@ export default function OpportunityDetailPage() {
                 {isAuthenticated && (
                   <button
                     onClick={() => toggleSave(opportunity.id)}
+                    disabled={isSaving(opportunity.id)}
+                    aria-busy={isSaving(opportunity.id)}
                     className="btn-secondary w-full justify-center py-2"
                   >
                     <BookmarkIcon size={13} fill={saved ? 'currentColor' : 'none'} />

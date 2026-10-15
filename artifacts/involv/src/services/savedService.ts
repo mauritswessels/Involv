@@ -14,9 +14,8 @@ export async function getSavedOpportunityIds(userId: string): Promise<string[]> 
 export async function saveOpportunity(userId: string, opportunityId: string): Promise<void> {
   const { error } = await supabase
     .from('saved_opportunities')
-    .insert({ user_id: userId, opportunity_id: opportunityId });
-  // Postgres unique constraint violation code = '23505' — treat as "already saved"
-  if (error && error.code !== '23505') throw error;
+    .upsert({ user_id: userId, opportunity_id: opportunityId }, { onConflict: 'user_id,opportunity_id', ignoreDuplicates: true });
+  if (error) throw error;
 }
 
 /** Remove a saved opportunity for a user. */

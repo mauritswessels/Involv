@@ -9,8 +9,8 @@ import { useApp } from '../context/AppContext';
 import type { Opportunity } from '../types';
 
 export default function SavedOpportunitiesPage() {
-  const { savedIds } = useApp();
-  const { opportunities } = useOpportunities();
+  const { savedIds, loading: userLoading } = useApp();
+  const { opportunities, loading, error, retry } = useOpportunities();
   const [applyTarget, setApplyTarget] = useState<Opportunity | null>(null);
 
   const saved = opportunities.filter(o => savedIds.has(o.id));
@@ -29,11 +29,14 @@ export default function SavedOpportunitiesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {saved.length === 0 ? (
+        {error && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-white p-4 text-sm text-red-800">
+          {error} <button type="button" onClick={retry} className="underline">Retry</button>
+        </div>}
+        {loading || userLoading ? <p role="status" className="text-sm text-slate-500">Loading saved opportunities…</p> : !error && saved.length === 0 ? (
           <EmptyState
             icon={<BookmarkIcon size={20} />}
             heading="Nothing saved yet"
-            description="Browse opportunities and tap the bookmark icon to save ones you're interested in."
+            description="Only currently available opportunities appear here. Deleted listings are removed automatically. Browse and tap a bookmark to save an activity."
             action={
               <Link to="/browse" className="btn-primary">
                 Browse opportunities

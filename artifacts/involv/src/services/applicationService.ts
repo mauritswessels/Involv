@@ -84,7 +84,9 @@ export async function updateApplicationStatus(
   const { error } = await supabase
     .from('applications')
     .update({ status })
-    .eq('id', applicationId);
+    .eq('id', applicationId)
+    .select('id,status')
+    .single();
   if (error) throw error;
 }
 

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeftIcon, CheckIcon, XCircleIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getOrganizerOpportunities, updateOpportunity, setOpportunityStatus } from '../services/opportunityService';
+import { getOrganizerOpportunities, getOpportunityContact, updateOpportunity, setOpportunityStatus } from '../services/opportunityService';
+import { actionError } from '../utils/actionError';
 import type { Opportunity } from '../types';
 import { logSafeError } from '../utils/safeConsole';
 
@@ -46,6 +47,7 @@ export default function EditOpportunityPage() {
 
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [closing, setClosing] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -80,9 +82,10 @@ export default function EditOpportunityPage() {
   useEffect(() => {
     if (!user || !id) return;
     getOrganizerOpportunities(user.id)
-      .then(opps => {
+      .then(async opps => {
         const opp = opps.find(o => o.id === id) ?? null;
         if (opp) {
+          const organizerEmail = await getOpportunityContact(id);
           setOpportunity(opp);
           setForm({
             title: opp.title,
@@ -105,11 +108,11 @@ export default function EditOpportunityPage() {
             impactDescription: opp.impactDescription,
             organizerName: opp.organizerName,
             organizerRole: opp.organizerRole,
-            organizerEmail: opp.organizerEmail,
+            organizerEmail,
           });
         }
       })
-      .catch(err => logSafeError('[Opportunity] failed to load for editing', err))
+      .catch(err => { logSafeError('[Opportunity] failed to load for editing', err); setLoadError(actionError(err, 'load')); })
       .finally(() => setLoading(false));
   }, [user?.id, id]);
 
@@ -175,6 +178,9 @@ export default function EditOpportunityPage() {
     }
   };
 
+  if (loadError) return <div role="alert" className="max-w-xl mx-auto p-6 text-sm text-red-800">
+    <p>{loadError}</p><button type="button" onClick={() => window.location.reload()} className="btn-secondary mt-3">Retry loading</button>
+  </div>;
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">

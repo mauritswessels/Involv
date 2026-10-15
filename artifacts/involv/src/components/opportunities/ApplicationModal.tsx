@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { actionError } from '../../utils/actionError';
 import { XIcon } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -16,6 +17,7 @@ export default function ApplicationModal({ opportunity, onClose }: ApplicationMo
   const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const sending = useRef(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [form, setForm] = useState({
     grade: user?.grade ?? 'Grade 11',
@@ -35,13 +37,14 @@ export default function ApplicationModal({ opportunity, onClose }: ApplicationMo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (sending.current) return;
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
 
-    setSubmitting(true);
+    sending.current = true; setSubmitting(true);
     setSubmitError(null);
 
     try {
@@ -59,14 +62,9 @@ export default function ApplicationModal({ opportunity, onClose }: ApplicationMo
       });
       setSubmitted(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-      // Postgres unique constraint = already applied
-      if (msg.includes('23505') || msg.toLowerCase().includes('duplicate')) {
-        setSubmitError('You have already applied for this opportunity.');
-      } else {
-        setSubmitError(msg);
-      }
+      setSubmitError(actionError(err, 'apply'));
     } finally {
+      sending.current = false;
       setSubmitting(false);
     }
   };

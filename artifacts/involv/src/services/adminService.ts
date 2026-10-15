@@ -3,6 +3,7 @@ import type { User, UserRole, Opportunity, Application } from '../types';
 import type { Database } from '../lib/database.types';
 import type { Category } from '../types';
 import { rowToApplication } from './applicationService';
+import { PUBLIC_OPPORTUNITY_FIELDS } from './opportunityFields';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 type AdminProfileRow = Pick<
@@ -29,7 +30,7 @@ function rowToUser(row: AdminProfileRow): User {
   };
 }
 
-type OpportunityRow = Database['public']['Tables']['opportunities']['Row'];
+type OpportunityRow = Omit<Database['public']['Tables']['opportunities']['Row'], 'organizer_email' | 'updated_at' | 'cv_relevance'>;
 
 function rowToOpportunity(row: OpportunityRow): Opportunity {
   return {
@@ -41,7 +42,7 @@ function rowToOpportunity(row: OpportunityRow): Opportunity {
     fullDescription: row.full_description,
     organizerName: row.organizer_name,
     organizerRole: row.organizer_role,
-    organizerEmail: row.organizer_email,
+    organizerEmail: '',
     locationType: row.location_type as Opportunity['locationType'],
     locationText: row.location_text,
     dates: row.dates,
@@ -79,7 +80,7 @@ export async function getAllProfiles(): Promise<User[]> {
 export async function getAllOpportunitiesAdmin(): Promise<Opportunity[]> {
   const { data, error } = await supabase
     .from('opportunities')
-    .select('*')
+    .select(PUBLIC_OPPORTUNITY_FIELDS)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(rowToOpportunity);

@@ -18,7 +18,7 @@ interface OpportunityCardProps {
 }
 
 export default function OpportunityCard({ opportunity, onApply, compact = false }: OpportunityCardProps) {
-  const { isSaved, toggleSave, isApplied } = useApp();
+  const { isSaved, toggleSave, isApplied, isSaving } = useApp();
   const { isAuthenticated } = useAuth();
   const saved = isSaved(opportunity.id);
   const applied = isApplied(opportunity.id);
@@ -40,6 +40,8 @@ export default function OpportunityCard({ opportunity, onApply, compact = false 
         {isAuthenticated && (
           <button
             onClick={() => toggleSave(opportunity.id)}
+            disabled={isSaving(opportunity.id)}
+            aria-busy={isSaving(opportunity.id)}
             aria-label={saved ? 'Remove from saved' : 'Save opportunity'}
             className={`shrink-0 mt-0.5 p-1.5 rounded-lg transition-colors ${
               saved

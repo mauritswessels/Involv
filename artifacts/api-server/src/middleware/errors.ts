@@ -1,44 +1,19 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
 import { logger } from "../lib/logger";
+import { requestFailureMetadata } from "../lib/requestLogging";
 
 export const notFoundHandler: RequestHandler = (req, res) => {
   res.status(404).json({
     error: "Not found",
-    message: `No API route matches ${req.method} ${req.path}.`,
+    message: "No API route matches this request.",
   });
 };
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  if (res.headersSent) {
-    next(err);
-    return;
-  }
-
-  const candidate = err as {
-    message?: string;
-    name?: string;
-    stack?: string;
-    status?: number;
-    statusCode?: number;
-    type?: string;
-  };
-  const reportedStatus = candidate.status ?? candidate.statusCode ?? 500;
-  const status =
-    Number.isInteger(reportedStatus) &&
-    reportedStatus >= 400 &&
-    reportedStatus < 500
-      ? reportedStatus
-      : 500;
-
+  const { status, category } = requestFailureMetadata(err);
   const logPayload = {
-    error: {
-      message: candidate.message ?? "Unknown error",
-      name: candidate.name ?? "Error",
-      stack: status >= 500 ? candidate.stack : undefined,
-      type: candidate.type,
-    },
+    category,
     method: req.method,
-    path: req.path,
     requestId: req.id,
     status,
   };
@@ -50,6 +25,14 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     logPayload,
     logMessage,
   );
+  if (res.headersSent) {
+    // Express's final handler may log the forwarded exception. Never forward
+    // the original message/stack after a partially written response.
+    const safeError = new Error("Request failed after the response started.");
+    safeError.stack = undefined;
+    next(safeError);
+    return;
+  }
 
   const message =
     status === 413

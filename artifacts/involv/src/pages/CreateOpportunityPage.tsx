@@ -69,7 +69,7 @@ export default function CreateOpportunityPage() {
     impactDescription: duplicate?.impactDescription ?? '',
     organizerName: duplicate?.organizerName ?? user?.name ?? '',
     organizerRole: duplicate?.organizerRole ?? '',
-    organizerEmail: duplicate?.organizerEmail ?? user?.email ?? '',
+    organizerEmail: duplicate?.organizerEmail || user?.email || '',
   });
 
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));

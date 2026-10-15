@@ -6,3 +6,4 @@
 - [ISZL access policy](school-access-policy.md) — exact @iszl.ch membership, student-first signup, and fresh admin approval for privileged roles.
 - [Activity group access](activity-access-policy.md) — private project groups, historical access for current members, and rollout independent of school OAuth approval.
 - [Private reflections](reflection-privacy.md) — personal notes, not teacher-reviewed submissions; manager/admin roles do not grant access.
+- [Pilot privacy](pilot-privacy.md) — protect catalogue contacts across reads and change streams; keep raw student text out of the full logging path.

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { actionError } from '../utils/actionError';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircleIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -36,7 +37,7 @@ export default function LoginPage() {
     const search = new URLSearchParams(window.location.search);
     const hash = new URLSearchParams(window.location.hash.slice(1));
     if (search.has('error') || hash.has('error')) {
-      setError(search.get('error_description') || hash.get('error_description') || 'Google sign-in was not completed. Please use your @iszl.ch account.');
+      setError(actionError({ code: search.get('error') || hash.get('error') }, 'signin'));
       for (const key of ['error', 'error_description', 'error_code']) {
         search.delete(key);
         hash.delete(key);
@@ -56,7 +57,7 @@ export default function LoginPage() {
       // In an embedded preview, sign-in continues in a separate browser tab.
       setLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign-in failed. Please try again.');
+      setError(actionError(err, 'signin'));
       setLoading(false);
     }
   };
@@ -68,7 +69,7 @@ export default function LoginPage() {
       await completeOnboarding();
       // user effect above fires once profile is created and navigates
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create your school account. Please try again.');
+      setError(actionError(err, 'account'));
       setLoading(false);
     }
   };

@@ -8,6 +8,7 @@ import {
 } from '../services/applicationService';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { actionError } from '../utils/actionError';
 
 interface UseOrganizerDataResult {
   opportunities: Opportunity[];
@@ -48,7 +49,7 @@ export function useOrganizerData(): UseOrganizerDataResult {
         const appArrays = await Promise.all(opps.map(o => getOpportunityApplications(o.id)));
         setApplications(appArrays.flat());
       })
-      .catch(err => setError(err.message))
+      .catch(err => setError(actionError(err, 'load')))
       .finally(() => setLoading(false));
   }, [user?.id]);
 

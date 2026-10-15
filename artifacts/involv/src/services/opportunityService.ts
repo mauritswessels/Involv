@@ -1,8 +1,9 @@
 import { supabase } from '../lib/supabase';
 import type { Opportunity } from '../types';
 import type { Database } from '../lib/database.types';
+import { PUBLIC_OPPORTUNITY_FIELDS } from './opportunityFields';
 
-type OpportunityRow = Database['public']['Tables']['opportunities']['Row'];
+type OpportunityRow = Omit<Database['public']['Tables']['opportunities']['Row'], 'organizer_email' | 'updated_at' | 'cv_relevance'>;
 
 export function rowToOpportunity(row: OpportunityRow): Opportunity {
   return {
@@ -14,7 +15,7 @@ export function rowToOpportunity(row: OpportunityRow): Opportunity {
     fullDescription: row.full_description,
     organizerName: row.organizer_name,
     organizerRole: row.organizer_role,
-    organizerEmail: row.organizer_email,
+    organizerEmail: '',
     locationType: row.location_type as Opportunity['locationType'],
     locationText: row.location_text,
     dates: row.dates,
@@ -42,7 +43,7 @@ export function rowToOpportunity(row: OpportunityRow): Opportunity {
 export async function getAllOpportunities(): Promise<Opportunity[]> {
   const { data, error } = await supabase
     .from('opportunities')
-    .select('*')
+    .select(PUBLIC_OPPORTUNITY_FIELDS)
     .eq('status', 'active')
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -53,7 +54,7 @@ export async function getAllOpportunities(): Promise<Opportunity[]> {
 export async function getOrganizerOpportunities(organizerId: string): Promise<Opportunity[]> {
   const { data, error } = await supabase
     .from('opportunities')
-    .select('*')
+    .select(PUBLIC_OPPORTUNITY_FIELDS)
     .eq('organizer_id', organizerId)
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -115,10 +116,18 @@ export async function createOpportunity(
       impact_description: opp.impactDescription,
       tags: opp.tags,
     })
-    .select()
+    .select(PUBLIC_OPPORTUNITY_FIELDS)
     .single();
   if (error) throw error;
   return rowToOpportunity(data);
+}
+
+/** Private management field. Never merge it into shared listing caches. */
+export async function getOpportunityContact(id: string): Promise<string> {
+  const { data, error } = await supabase.rpc('get_opportunity_contact', { target_opportunity_id: id });
+  if (error) throw error;
+  if (typeof data !== 'string') throw new Error('The private organiser contact could not be loaded.');
+  return data;
 }
 
 /** Update an existing opportunity's fields. */

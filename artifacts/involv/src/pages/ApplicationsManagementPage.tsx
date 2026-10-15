@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { actionError } from '../utils/actionError';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, CheckSquareIcon, MessageSquareIcon, XIcon } from 'lucide-react';
 import { StatusChip } from '../components/ui/StatusChip';
@@ -24,6 +25,10 @@ export default function ApplicationsManagementPage() {
   const [viewApp, setViewApp] = useState<Application | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulking, setBulking] = useState(false);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
+  const [deciding, setDeciding] = useState(false);
+  const decisionBusy = useRef(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Fetch the opportunity + its applications on mount
   useEffect(() => {
@@ -38,34 +43,37 @@ export default function ApplicationsManagementPage() {
         setOpportunity(opp);
         setApplications(apps);
       })
-      .catch(err => logSafeError('[Applications] failed to load', err))
+      .catch(err => { logSafeError('[Applications] failed to load', err); setLoadError(actionError(err, 'load')); })
       .finally(() => setLoading(false));
   }, [user?.id, opportunityId]);
 
-  const updateStatus = (id: string, status: ApplicationStatus) => {
-    setApplications(prev => prev.map(a => (a.id === id ? { ...a, status } : a)));
-    if (viewApp?.id === id) setViewApp(prev => prev ? { ...prev, status } : prev);
-    updateApplicationStatus(id, status).catch(err =>
-      logSafeError('[Applications] update status failed', err),
-    );
+  const updateStatus = async (id: string, status: ApplicationStatus) => {
+    if (decisionBusy.current) return;
+    decisionBusy.current = true; setDeciding(true); setDecisionError(null);
+    try {
+      await updateApplicationStatus(id, status);
+      setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+      setViewApp(prev => prev?.id === id ? { ...prev, status } : prev);
+    } catch (error) {
+      logSafeError('[Applications] update status failed', error);
+      setDecisionError(actionError(error, 'review'));
+    } finally { decisionBusy.current = false; setDeciding(false); }
   };
 
   const handleBulkStatus = async (status: ApplicationStatus) => {
-    if (selectedIds.size === 0) return;
-    setBulking(true);
+    if (selectedIds.size === 0 || decisionBusy.current) return;
+    decisionBusy.current = true; setBulking(true); setDeciding(true); setDecisionError(null);
     const ids = [...selectedIds];
-    // Optimistic update
-    setApplications(prev => prev.map(a => selectedIds.has(a.id) ? { ...a, status } : a));
-    setSelectedIds(new Set());
-    // Persist all in parallel
-    await Promise.all(
-      ids.map(id =>
-        updateApplicationStatus(id, status).catch(err =>
-          logSafeError('[Applications] bulk status update failed', err),
-        ),
-      ),
-    );
-    setBulking(false);
+    try {
+      const results = await Promise.allSettled(ids.map(id => updateApplicationStatus(id, status)));
+      const confirmed = new Set(ids.filter((_, i) => results[i].status === 'fulfilled'));
+      setApplications(prev => prev.map(a => confirmed.has(a.id) ? { ...a, status } : a));
+      setViewApp(prev => prev && confirmed.has(prev.id) ? { ...prev, status } : prev);
+      setSelectedIds(prev => new Set([...prev].filter(id => !confirmed.has(id))));
+      if (confirmed.size !== ids.length) {
+        setDecisionError(`${confirmed.size} of ${ids.length} changes confirmed. The remaining decisions were not confirmed. Refresh before retrying.`);
+      }
+    } finally { decisionBusy.current = false; setBulking(false); setDeciding(false); }
   };
 
   const toggleSelect = (id: string) =>
@@ -105,6 +113,9 @@ export default function ApplicationsManagementPage() {
     Rejected: applications.filter(a => a.status === 'Rejected').length,
   };
 
+  if (loadError) return <div role="alert" className="max-w-xl mx-auto p-6 text-sm text-red-800">
+    <p>{loadError}</p><button type="button" onClick={() => window.location.reload()} className="btn-secondary mt-3">Retry loading</button>
+  </div>;
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -123,6 +134,11 @@ export default function ApplicationsManagementPage() {
   }
 
   return (
+    <>
+    {(decisionError || deciding) && <div role={decisionError ? 'alert' : 'status'} className="fixed bottom-4 left-4 right-4 sm:left-auto sm:w-96 z-[60] rounded-lg border border-slate-300 bg-white p-4 text-sm text-slate-800 shadow-lg">
+      {decisionError || 'Saving application decisions…'}
+      {decisionError && <button type="button" onClick={() => setDecisionError(null)} className="underline ml-2">Dismiss</button>}
+    </div>}
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
@@ -410,5 +426,6 @@ export default function ApplicationsManagementPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

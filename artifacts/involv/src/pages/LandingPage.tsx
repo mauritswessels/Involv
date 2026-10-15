@@ -20,7 +20,7 @@ import Footer from '../components/layout/Footer';
 import OpportunityCard from '../components/opportunities/OpportunityCard';
 import ApplicationModal from '../components/opportunities/ApplicationModal';
 import { useStats } from '../hooks/useStats';
-import { mockOpportunities } from '../data/mockData';
+import { useOpportunities } from '../hooks/useOpportunities';
 import type { Opportunity } from '../types';
 
 const CATEGORIES = [
@@ -154,8 +154,10 @@ export default function LandingPage() {
   const [applyTarget, setApplyTarget] = useState<Opportunity | null>(null);
   const navigate = useNavigate();
   const { stats } = useStats();
+  const { opportunities, loading: activitiesLoading, error: activitiesError, retry: retryActivities } = useOpportunities();
 
-  const featured = mockOpportunities.filter(o => o.featured).slice(0, 3);
+  const highlighted = opportunities.filter(o => o.featured);
+  const featured = (highlighted.length ? highlighted : opportunities).slice(0, 3);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,7 +232,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {CATEGORIES.map(cat => {
               const Icon = cat.icon;
-              const count = mockOpportunities.filter(o => o.category === cat.name).length;
+              const count = opportunities.filter(o => o.category === cat.name).length;
               return (
                 <Link
                   key={cat.name}
@@ -269,14 +271,21 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-baseline justify-between mb-6">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Featured opportunities</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Handpicked by our team. Applications open now.</p>
+              <h2 className="text-lg font-bold text-slate-900">Current opportunities</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Published activities from Involv. Check each listing for application dates.</p>
             </div>
             <Link to="/browse" className="text-xs text-blue-900 font-medium hover:underline flex items-center gap-1">
               Browse all <ArrowRightIcon size={12} />
             </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {activitiesLoading && <p role="status" className="text-sm text-slate-500">Loading activities…</p>}
+            {activitiesError && <div role="alert" className="text-sm text-red-800">
+              {activitiesError} <button type="button" className="underline" onClick={retryActivities}>Retry</button>
+            </div>}
+            {!activitiesLoading && !activitiesError && featured.length === 0 && <p className="text-sm text-slate-500">
+              No activities are published yet. Your school’s pilot activities will appear here once added.
+            </p>}
             {featured.map(opp => (
               <OpportunityCard key={opp.id} opportunity={opp} onApply={setApplyTarget} />
             ))}

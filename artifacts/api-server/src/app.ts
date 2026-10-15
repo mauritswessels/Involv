@@ -3,6 +3,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { requestLogSerializers } from "./lib/requestLogging";
 import { apiRateLimit } from "./middleware/rateLimit";
 import { errorHandler, notFoundHandler } from "./middleware/errors";
 
@@ -15,20 +16,7 @@ if (process.env.NODE_ENV === "production") {
 app.use(
   pinoHttp({
     logger,
-    serializers: {
-      req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
-      },
-    },
+    serializers: requestLogSerializers,
   }),
 );
 app.use(cors());
