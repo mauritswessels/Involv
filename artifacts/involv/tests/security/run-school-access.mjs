@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { checkParticipationConcurrency } from './participation-concurrency.mjs';
 import { checkCorrectionConcurrency } from './hour-correction-concurrency.mjs';
+import { checkApplicationConcurrency } from './application-concurrency.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const tmp = mkdtempSync(join(tmpdir(), 'involv-school-access-'));
 const data = join(tmp, 'data');
@@ -79,7 +80,8 @@ try {
   const messagingMode = process.argv.includes('--messaging') || messagingControlsMode;
   const reflectionsMode = process.argv.includes('--reflections');
   const participationMode = process.argv.includes('--participation') || portfolioMode;
-  const pilotPrivacyMode = process.argv.includes('--pilot-privacy');
+  const applicationMode = process.argv.includes('--applications');
+  const pilotPrivacyMode = process.argv.includes('--pilot-privacy') || applicationMode;
   const activityMode = process.argv.includes('--activity') || participationMode || messagingMode || reflectionsMode || pilotPrivacyMode;
   let activitySuite = readFileSync(join(root, 'tests/security/activity-hub.sql'), 'utf8');
   if (pilotPrivacyMode) {
@@ -168,6 +170,24 @@ ${readFileSync(join(root, 'supabase/tests/launch_security_checks.sql'), 'utf8')}
   console.log('PASS: school-access and private-profile policies, role-specific profile reads, saved-opportunity privacy, ownership, approval/revocation, audit, and public browsing.');
   if (participationMode) await checkParticipationConcurrency(sql, socket);
   if (correctionsMode) await checkCorrectionConcurrency(sql, socket);
+  if (applicationMode) {
+    // First run the older role/privacy regressions, then exercise the stricter
+    // application contract (old fixtures intentionally contain blank answers).
+    const lifecycle=readFileSync(join(root,'supabase/migrations/20261015000002_application_lifecycle.sql'),'utf8');
+    sql(lifecycle);
+    sql(readFileSync(join(root,'tests/security/application-lifecycle.sql'),'utf8'));
+    await checkApplicationConcurrency(sql,socket);
+    // Reinstall over existing real applications: counts/decisions must survive.
+    sql('ALTER TABLE public.opportunities DISABLE TRIGGER opportunity_application_totals; UPDATE public.opportunities SET applicants_count=999; ALTER TABLE public.opportunities ENABLE TRIGGER opportunity_application_totals;');
+    sql(lifecycle);
+    sql(`DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM public.opportunities o WHERE applicants_count <>
+        (SELECT count(*) FROM public.applications a WHERE a.opportunity_id=o.id)) THEN
+        RAISE EXCEPTION 'Installation did not repair existing counts';
+      END IF;
+    END; $$;`);
+    console.log('PASS: application lifecycle rules, school/owner isolation, canonical identity, deadlines, withdrawal/reapply, safe reinstall and existing counter repair.');
+  }
 } finally {
   if (started) run('pg_ctl', ['-D', data, '-m', 'immediate', '-w', 'stop']);
   rmSync(tmp, { recursive: true, force: true });

@@ -21,23 +21,32 @@ export function useOpportunities(): UseOpportunitiesResult {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    let active = true, fetching = false;
+    let active = true, fetching = false, refreshAgain = false;
     setLoading(true);
     const refresh = async () => {
-      if (!active || fetching) return;
+      if (!active) return;
+      if (fetching) { refreshAgain = true; return; }
       fetching = true;
       try {
         const rows = await getAllOpportunities();
         if (active) { setOpportunities(rows); setError(null); }
       } catch (err) { if (active) setError(actionError(err, 'load')); }
-      finally { fetching = false; if (active) setLoading(false); }
+      finally {
+        fetching = false;
+        if (active) {
+          setLoading(false);
+          if (refreshAgain) { refreshAgain = false; void refresh(); }
+        }
+      }
     };
     void refresh();
     const timer = setInterval(() => void refresh(), 30000);
     window.addEventListener('focus', refresh); window.addEventListener('online', refresh);
+    window.addEventListener('involv:applications-changed', refresh);
     return () => {
       active = false; clearInterval(timer);
       window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh);
+      window.removeEventListener('involv:applications-changed', refresh);
     };
   }, [reloadKey]);
 

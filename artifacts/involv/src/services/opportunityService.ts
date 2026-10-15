@@ -183,7 +183,6 @@ export async function updateOpportunity(
   const { error } = await supabase.from('opportunities').update(dbUpdates).eq('id', id);
   if (error) throw error;
 }
-
 /** Set an opportunity's status (e.g. 'closed', 'active', 'draft'). */
 export async function setOpportunityStatus(
   id: string,
@@ -191,18 +190,4 @@ export async function setOpportunityStatus(
 ): Promise<void> {
   const { error } = await supabase.from('opportunities').update({ status }).eq('id', id);
   if (error) throw error;
-}
-
-/** Atomically increment applicants_count by 1 (fire-and-forget safe). */
-export async function incrementApplicantsCount(opportunityId: string): Promise<void> {
-  const { data: row, error: fetchErr } = await supabase
-    .from('opportunities')
-    .select('applicants_count')
-    .eq('id', opportunityId)
-    .single();
-  if (fetchErr || !row) return;
-  await supabase
-    .from('opportunities')
-    .update({ applicants_count: row.applicants_count + 1 })
-    .eq('id', opportunityId);
 }

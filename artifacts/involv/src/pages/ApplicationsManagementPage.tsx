@@ -51,7 +51,9 @@ export default function ApplicationsManagementPage() {
     if (decisionBusy.current) return;
     decisionBusy.current = true; setDeciding(true); setDecisionError(null);
     try {
-      await updateApplicationStatus(id, status);
+      const previous = applications.find(a => a.id === id);
+      if (!previous) throw { code: 'PGRST116' };
+      await updateApplicationStatus(id, status, previous.status);
       setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
       setViewApp(prev => prev?.id === id ? { ...prev, status } : prev);
     } catch (error) {
@@ -65,13 +67,19 @@ export default function ApplicationsManagementPage() {
     decisionBusy.current = true; setBulking(true); setDeciding(true); setDecisionError(null);
     const ids = [...selectedIds];
     try {
-      const results = await Promise.allSettled(ids.map(id => updateApplicationStatus(id, status)));
+      const results = await Promise.allSettled(ids.map(id => {
+        const previous = applications.find(a => a.id === id);
+        return previous
+          ? updateApplicationStatus(id, status, previous.status)
+          : Promise.reject({ code: 'PGRST116' });
+      }));
       const confirmed = new Set(ids.filter((_, i) => results[i].status === 'fulfilled'));
       setApplications(prev => prev.map(a => confirmed.has(a.id) ? { ...a, status } : a));
       setViewApp(prev => prev && confirmed.has(prev.id) ? { ...prev, status } : prev);
       setSelectedIds(prev => new Set([...prev].filter(id => !confirmed.has(id))));
       if (confirmed.size !== ids.length) {
-        setDecisionError(`${confirmed.size} of ${ids.length} changes confirmed. The remaining decisions were not confirmed. Refresh before retrying.`);
+        const capacityFailure = results.some(r => r.status === 'rejected' && r.reason?.code === 'IV004');
+        setDecisionError(`${confirmed.size} of ${ids.length} changes confirmed. ${capacityFailure ? 'Some acceptances could not be saved because all places are filled. ' : ''}The remaining decisions were not confirmed. Refresh before retrying.`);
       }
     } finally { decisionBusy.current = false; setBulking(false); setDeciding(false); }
   };

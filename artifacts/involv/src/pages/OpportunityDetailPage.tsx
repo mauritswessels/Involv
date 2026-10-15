@@ -16,6 +16,7 @@ import OpportunityCard from '../components/opportunities/OpportunityCard';
 import { useOpportunities } from '../hooks/useOpportunities';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { applicationDeadlineDays } from '../utils/applicationDeadline';
 
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +50,7 @@ export default function OpportunityDetailPage() {
   const saved = isSaved(opportunity.id);
   const applied = isApplied(opportunity.id);
   const deadline = new Date(opportunity.applicationDeadline);
-  const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const daysLeft = applicationDeadlineDays(opportunity.applicationDeadline);
   const deadlinePassed = daysLeft < 0;
 
   const similar = opportunities
@@ -106,7 +107,7 @@ export default function OpportunityDetailPage() {
                 {[
                   { icon: MapPinIcon, label: 'Location', value: opportunity.locationType },
                   { icon: ClockIcon, label: 'Time', value: opportunity.timeCommitment },
-                  { icon: UsersIcon, label: 'Spots', value: `${opportunity.positionsAvailable} available` },
+                  { icon: UsersIcon, label: 'Total places', value: `${opportunity.positionsAvailable}` },
                   {
                     icon: CalendarIcon,
                     label: 'Deadline',
@@ -240,11 +241,11 @@ export default function OpportunityDetailPage() {
 
               <div className="border-t border-slate-100 pt-4 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Applicants so far</span>
+                  <span className="text-slate-500">Applications on record</span>
                   <span className="font-semibold text-slate-900">{opportunity.applicantsCount}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Positions available</span>
+                  <span className="text-slate-500">Total places</span>
                   <span className="font-semibold text-slate-900">{opportunity.positionsAvailable}</span>
                 </div>
               </div>

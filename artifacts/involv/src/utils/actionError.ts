@@ -1,8 +1,14 @@
-type Action = 'signin' | 'account' | 'apply' | 'save' | 'load' | 'review' | 'withdraw';
+type Action = 'signin' | 'account' | 'apply' | 'save' | 'load' | 'review' | 'withdraw' | 'listing';
 /** Provider messages, SQL details, URL descriptions and stacks are untrusted text. */
 export function actionError(error: unknown, action: Action): string {
   const value = error && typeof error === 'object' ? error as { code?: unknown; status?: unknown } : {};
   const code = typeof value.code === 'string' ? value.code : '';
+  if (code === 'IV001') return 'This activity is no longer accepting applications. Your answers are kept here.';
+  if (code === 'IV002') return 'The application deadline has passed (school time). Your answers are kept here.';
+  if (code === 'IV003') return 'All places have been filled. Your answers are kept here; check the listing again later.';
+  if (code === 'IV004') return 'No places remain. This acceptance was not saved. Refresh the applications before making another decision.';
+  if (code === 'IV005') return 'Total places must be at least one and cannot be fewer than the number of accepted students.';
+  if (code === 'IV006') return 'Use at least 30 characters for motivation and provide availability. Keep motivation and experience under 10,000 characters, availability under 2,000, and grade under 100.';
   if (code === '23505' && action === 'apply') return 'You have already applied. Check My Applications before trying again.';
   if (code === '23503' && (action === 'apply' || action === 'save')) return 'This opportunity is no longer available. Refresh the listings.';
   if (code === '42501' || code === 'access_denied') return action === 'signin' || action === 'account'
@@ -17,5 +23,6 @@ export function actionError(error: unknown, action: Action): string {
   if (action === 'save') return 'Your saved-list change could not be confirmed. It has been reversed on this screen; refresh to check the stored result, then retry.';
   if (action === 'review') return 'The status change was not confirmed. Refresh to check the current decision before retrying.';
   if (action === 'withdraw') return 'Withdrawal was not confirmed. Refresh My Applications before retrying.';
+  if (action === 'listing') return 'Your listing change could not be confirmed. Your edits are kept here; refresh the listing in another tab before retrying.';
   return 'Data could not be refreshed. Check your connection and retry. Previously loaded information may be out of date.';
 }

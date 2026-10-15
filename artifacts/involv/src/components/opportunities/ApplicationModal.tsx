@@ -100,6 +100,7 @@ export default function ApplicationModal({ opportunity, onClose }: ApplicationMo
           <div>
             <h2 className="text-sm font-semibold text-slate-900">Apply for opportunity</h2>
             <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{opportunity.title}</p>
+            <p className="text-xs text-slate-500 mt-1">Applying does not reserve a place. Staff must accept your application.</p>
           </div>
           <button
             onClick={onClose}
@@ -133,6 +134,7 @@ export default function ApplicationModal({ opportunity, onClose }: ApplicationMo
             <textarea
               id="motivation"
               rows={4}
+              maxLength={10000}
               value={form.motivation}
               onChange={e => {
                 setForm(f => ({ ...f, motivation: e.target.value }));
@@ -154,6 +156,7 @@ export default function ApplicationModal({ opportunity, onClose }: ApplicationMo
             <textarea
               id="experience"
               rows={3}
+              maxLength={10000}
               value={form.relevantExperience}
               onChange={e => setForm(f => ({ ...f, relevantExperience: e.target.value }))}
               placeholder="Any relevant skills, past roles, or experiences — however informal."
@@ -169,6 +172,7 @@ export default function ApplicationModal({ opportunity, onClose }: ApplicationMo
             <textarea
               id="availability"
               rows={2}
+              maxLength={2000}
               value={form.availability}
               onChange={e => {
                 setForm(f => ({ ...f, availability: e.target.value }));

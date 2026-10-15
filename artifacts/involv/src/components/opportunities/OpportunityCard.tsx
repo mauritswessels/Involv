@@ -10,6 +10,7 @@ import { CategoryBadge, Pill } from '../ui/Badge';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import type { Opportunity } from '../../types';
+import { applicationDeadlineDays } from '../../utils/applicationDeadline';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -24,7 +25,7 @@ export default function OpportunityCard({ opportunity, onApply, compact = false 
   const applied = isApplied(opportunity.id);
 
   const deadline = new Date(opportunity.applicationDeadline);
-  const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const daysLeft = applicationDeadlineDays(opportunity.applicationDeadline);
   const deadlineSoon = daysLeft >= 0 && daysLeft <= 7;
 
   return (
@@ -114,7 +115,7 @@ export default function OpportunityCard({ opportunity, onApply, compact = false 
             ) : (
               <button
                 onClick={() => onApply?.(opportunity)}
-                disabled={!isAuthenticated}
+                disabled={!isAuthenticated || daysLeft < 0}
                 className="btn-primary flex-1 justify-center py-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Apply

@@ -62,8 +62,8 @@ const chain={
   async single(){acknowledged=true;return {error:rowError};},
 };
 const service=load('src/services/applicationService.ts',{'../lib/supabase':{supabase:{from(table){assert.equal(table,'applications');return chain;}}}});
-await assert.rejects(service.updateApplicationStatus('application','Accepted'),error=>error.code==='PGRST116');
+await assert.rejects(service.updateApplicationStatus('application','Accepted','Pending'),error=>error.code==='PGRST116');
 assert.ok(acknowledged,'a zero-row response cannot be treated as approval');
 rowError=null;
-await service.updateApplicationStatus('application','Accepted');
+await service.updateApplicationStatus('application','Accepted','Pending');
 console.log('PASS: real saved-state coordinator single-flight writes, stale hydration, rollback, deletion refresh and disposal; safe action-error codes; public projection and user-scope wiring. Not a browser interaction test.');

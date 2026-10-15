@@ -159,7 +159,7 @@ export default function EditOpportunityPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save changes.');
+      setSaveError(actionError(err, 'listing'));
     } finally {
       setSaving(false);
     }
@@ -172,7 +172,7 @@ export default function EditOpportunityPage() {
       await setOpportunityStatus(id, 'closed');
       navigate('/organizer');
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to close listing.');
+      setSaveError(actionError(err, 'listing'));
       setClosing(false);
       setConfirmClose(false);
     }
@@ -306,7 +306,7 @@ export default function EditOpportunityPage() {
               </select>
             </div>
             <div>
-              <label className="label-base">Positions available *</label>
+              <label className="label-base">Total places *</label>
               <input type="number" required min="1" value={form.positionsAvailable} onChange={e => set('positionsAvailable', e.target.value)} className="input-base" />
             </div>
             <div>

@@ -4,7 +4,6 @@ import { logSafeError } from '../utils/safeConsole';
 import { useAuth } from './AuthContext';
 import { getSavedOpportunityIds, saveOpportunity, unsaveOpportunity } from '../services/savedService';
 import { getStudentApplications, createApplication, updateApplicationStatus as persistStatus, withdrawApplication as persistWithdraw } from '../services/applicationService';
-import { incrementApplicantsCount } from '../services/opportunityService';
 import { SavedState, type SavedSnapshot } from '../services/savedState';
 import { actionError } from '../utils/actionError';
 
@@ -105,17 +104,16 @@ function ScopedAppProvider({ children }: { children: React.ReactNode }) {
     try {
       const newApp = await createApplication(application);
       setApplications(prev => [newApp, ...prev.filter(a => a.id !== newApp.id)]);
+      window.dispatchEvent(new Event('involv:applications-changed'));
     } finally { appRevision.current++; appPending.current--; }
-    // Increment count asynchronously — failure is non-critical
-    incrementApplicantsCount(application.opportunityId).catch(err =>
-      logSafeError('[App] applicant count increment failed', err),
-    );
   };
 
   // Only show a status change after the server confirms a matching row.
   const updateApplicationStatus = (applicationId: string, status: ApplicationStatus) => {
+    const previous = applications.find(a => a.id === applicationId);
+    if (!previous) { setActionFailure(actionError({ code: 'PGRST116' }, 'review')); return; }
     appRevision.current++; appPending.current++;
-    persistStatus(applicationId, status)
+    persistStatus(applicationId, status, previous.status)
       .then(() => setApplications(prev => prev.map(a => a.id === applicationId ? { ...a, status } : a)))
       .catch(err => { logSafeError('[App] updateApplicationStatus failed', err); setActionFailure(actionError(err, 'review')); })
       .finally(() => { appRevision.current++; appPending.current--; });
@@ -128,6 +126,7 @@ function ScopedAppProvider({ children }: { children: React.ReactNode }) {
     setApplications(prev => prev.filter(a => a.id !== applicationId));
     try {
       await persistWithdraw(applicationId);
+      window.dispatchEvent(new Event('involv:applications-changed'));
     } catch (err) {
       logSafeError('[App] withdrawApplication failed', err);
       setActionFailure(actionError(err, 'withdraw'));

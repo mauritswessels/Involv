@@ -3,7 +3,6 @@ import type { Opportunity, Application, ApplicationStatus } from '../types';
 import { getOrganizerOpportunities } from '../services/opportunityService';
 import {
   getOpportunityApplications,
-  updateApplicationStatus,
   rowToApplication,
 } from '../services/applicationService';
 import { useAuth } from '../context/AuthContext';
@@ -43,14 +42,33 @@ export function useOrganizerData(): UseOrganizerDataResult {
     setLoading(true);
     setError(null);
 
-    getOrganizerOpportunities(user.id)
-      .then(async opps => {
-        setOpportunities(opps);
+    let active = true, fetching = false, refreshAgain = false;
+    const refresh = async () => {
+      if (!active) return;
+      if (fetching) { refreshAgain = true; return; }
+      fetching = true;
+      try {
+        const opps = await getOrganizerOpportunities(user.id);
         const appArrays = await Promise.all(opps.map(o => getOpportunityApplications(o.id)));
-        setApplications(appArrays.flat());
-      })
-      .catch(err => setError(actionError(err, 'load')))
-      .finally(() => setLoading(false));
+        if (active) { setOpportunities(opps); setApplications(appArrays.flat()); setError(null); }
+      } catch (err) { if (active) setError(actionError(err, 'load')); }
+      finally {
+        fetching = false;
+        if (active) {
+          setLoading(false);
+          if (refreshAgain) { refreshAgain = false; void refresh(); }
+        }
+      }
+    };
+    void refresh();
+    const timer = setInterval(() => void refresh(), 30000);
+    window.addEventListener('focus', refresh); window.addEventListener('online', refresh);
+    window.addEventListener('involv:applications-changed', refresh);
+    return () => {
+      active = false; clearInterval(timer);
+      window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh);
+      window.removeEventListener('involv:applications-changed', refresh);
+    };
   }, [user?.id]);
 
   // Real-time subscription — filtered to this organizer's applications

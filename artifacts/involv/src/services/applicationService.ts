@@ -80,11 +80,14 @@ export async function createApplication(app: {
 export async function updateApplicationStatus(
   applicationId: string,
   status: ApplicationStatus,
+  expectedStatus: ApplicationStatus,
 ): Promise<void> {
+  if (!expectedStatus) throw { code: 'PGRST116' };
   const { error } = await supabase
     .from('applications')
     .update({ status })
     .eq('id', applicationId)
+    .eq('status', expectedStatus)
     .select('id,status')
     .single();
   if (error) throw error;
@@ -95,6 +98,8 @@ export async function withdrawApplication(applicationId: string): Promise<void> 
   const { error } = await supabase
     .from('applications')
     .delete()
-    .eq('id', applicationId);
+    .eq('id', applicationId)
+    .select('id')
+    .single();
   if (error) throw error;
 }
