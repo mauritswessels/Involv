@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRightIcon,
@@ -11,7 +11,6 @@ import {
   MonitorIcon,
   PaletteIcon,
   SearchIcon,
-  StarIcon,
   TrendingUpIcon,
   UsersIcon,
 } from 'lucide-react';
@@ -39,7 +38,7 @@ const STEPS = [
   {
     number: '01',
     title: 'Build your profile',
-    description: 'Set your interests, skills, and availability. Involv learns what you care about and surfaces the most relevant opportunities.',
+    description: 'Add your interests, skills, and availability so organisers can learn about you when you apply.',
     icon: '👤',
   },
   {
@@ -51,32 +50,8 @@ const STEPS = [
   {
     number: '03',
     title: 'Track your impact',
-    description: 'Monitor application status, log service hours, write reflections, and earn a digital certificate on completion.',
+    description: 'Check your application status, submit service hours for staff review, and keep private reflections on your experience.',
     icon: '🏆',
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    quote: 'I found an environmental volunteer programme in 10 minutes that perfectly matched my schedule. Got accepted, completed it, and now have a verified certificate on my university application.',
-    name: 'Priya S.',
-    role: 'Year 12 student',
-    initials: 'PS',
-    color: 'bg-violet-700',
-  },
-  {
-    quote: 'As a teacher, managing applications through school email was a nightmare. Involv gives me a proper dashboard — I can see who applied, update statuses, and message the whole group instantly.',
-    name: 'Mr. Okonkwo',
-    role: 'Teacher, Maths & Science',
-    initials: 'AO',
-    color: 'bg-blue-900',
-  },
-  {
-    quote: "I run the school's sustainability committee and we used Involv to manage our clean-up campaign sign-ups. The attendance tracker and reflection journal saved us hours of admin every week.",
-    name: 'Marcus A.',
-    role: 'Student organiser, Year 13',
-    initials: 'MA',
-    color: 'bg-emerald-700',
   },
 ];
 
@@ -84,65 +59,16 @@ const FEATURES = [
   { label: 'Application tracking', icon: CheckCircleIcon },
   { label: 'Session calendar', icon: CheckCircleIcon },
   { label: 'Hours log & approval', icon: CheckCircleIcon },
-  { label: 'Reflection journal', icon: CheckCircleIcon },
-  { label: 'Digital certificates', icon: CheckCircleIcon },
+  { label: 'Private reflections', icon: CheckCircleIcon },
   { label: 'Announcements & chat', icon: CheckCircleIcon },
   { label: 'Attendance tracker', icon: CheckCircleIcon },
-  { label: 'Photo gallery', icon: CheckCircleIcon },
 ];
 
-function useCountUp(target: number, duration = 1200) {
-  const [value, setValue] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useRef(false);
-  const latestTarget = useRef(target);
-
-  // Always keep latest target in ref
-  latestTarget.current = target;
-
-  function runAnimation(to: number) {
-    const start = Date.now();
-    const from = 0;
-    const tick = () => {
-      const elapsed = Date.now() - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(from + ease * (to - from)));
-      if (progress < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }
-
-  // Re-run animation whenever target changes (i.e. real data arrives)
-  useEffect(() => {
-    if (inView.current && target > 0) runAnimation(target);
-  }, [target]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !inView.current) {
-          inView.current = true;
-          runAnimation(latestTarget.current);
-        }
-      },
-      { threshold: 0.4 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { value, ref };
-}
-
-function StatCounter({ value, suffix = '', label }: { value: number; suffix?: string; label: string }) {
-  const { value: displayed, ref } = useCountUp(value);
+function StatCounter({ value, label }: { value: number | null; label: string }) {
   return (
-    <div ref={ref} className="text-center">
+    <div className="text-center">
       <p className="text-3xl font-bold text-blue-900 tabular-nums">
-        {displayed}{suffix}
+        {value === null ? '—' : value}
       </p>
       <p className="text-sm text-slate-500 mt-1">{label}</p>
     </div>
@@ -153,7 +79,7 @@ export default function LandingPage() {
   const [search, setSearch] = useState('');
   const [applyTarget, setApplyTarget] = useState<Opportunity | null>(null);
   const navigate = useNavigate();
-  const { stats } = useStats();
+  const { stats, loading: statsLoading, retry: retryStats } = useStats();
   const { opportunities, loading: activitiesLoading, error: activitiesError, retry: retryActivities } = useOpportunities();
 
   const highlighted = opportunities.filter(o => o.featured);
@@ -209,6 +135,9 @@ export default function LandingPage() {
               Browse opportunities <ArrowRightIcon size={13} />
             </Link>
           </div>
+          <p className="text-xs text-slate-500 mt-4">
+            For verified @iszl.ch accounts. School Google sign-in may require approval from school IT.
+          </p>
         </div>
       </section>
 
@@ -258,11 +187,15 @@ export default function LandingPage() {
       <section className="bg-white border-y border-slate-200 py-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 divide-x divide-slate-100">
-            <StatCounter value={stats?.activeOpportunities ?? 0} suffix="+" label="Active opportunities" />
-            <StatCounter value={9} label="Categories" />
-            <StatCounter value={stats?.studentsEnrolled ?? 0} suffix="+" label="Students enrolled" />
-            <StatCounter value={stats?.applicationsSubmitted ?? 0} suffix="+" label="Applications submitted" />
+            <StatCounter value={stats?.activeOpportunities ?? null} label="Published opportunities" />
+            <StatCounter value={CATEGORIES.length} label="Categories" />
+            <StatCounter value={stats?.acceptedApplications ?? null} label="Accepted applications" />
+            <StatCounter value={stats?.applicationsSubmitted ?? null} label="Applications on record" />
           </div>
+          {statsLoading && <p role="status" className="text-center text-xs text-slate-500 mt-4">Loading platform counts…</p>}
+          {!statsLoading && !stats && <p role="status" className="text-center text-xs text-slate-500 mt-4">
+            Platform counts are unavailable. <button type="button" onClick={retryStats} className="underline">Retry</button>
+          </p>}
         </div>
       </section>
 
@@ -298,7 +231,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-lg font-bold text-slate-900 mb-2">How Involv works</h2>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">From sign-up to certificate, everything is in one place.</p>
+            <p className="text-sm text-slate-500 max-w-md mx-auto">Find an activity, apply, and keep a record of your service learning.</p>
           </div>
           <div className="grid sm:grid-cols-3 gap-8 relative">
             {/* Connector line (desktop) */}
@@ -324,16 +257,16 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid sm:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2">Everything you need</p>
+              <p className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2">Tools for the pilot</p>
               <h2 className="text-xl font-bold text-slate-900 mb-3 leading-snug">
                 More than just a listing board.
               </h2>
               <p className="text-sm text-slate-600 leading-relaxed mb-6">
-                Involv gives students and organisers a complete toolkit — from first application
-                to final certificate — so nothing gets lost in email chains or Schoology posts.
+                Keep applications, activity updates, attendance, and reviewed service hours in
+                one place. Students can also write reflections that only they can read.
               </p>
               <Link to="/login" className="btn-primary">
-                Get started free <ArrowRightIcon size={14} />
+                Get started <ArrowRightIcon size={14} />
               </Link>
             </div>
             <div className="grid grid-cols-2 gap-2.5">
@@ -344,37 +277,6 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ─────────────────────────────────────────────────────── */}
-      <section className="py-16">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-lg font-bold text-slate-900 mb-1">What people are saying</h2>
-            <p className="text-sm text-slate-500">From students, teachers, and organisers.</p>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-5">
-            {TESTIMONIALS.map(t => (
-              <div key={t.name} className="card p-6 flex flex-col gap-4">
-                <div className="flex gap-1">
-                  {[1,2,3,4,5].map(s => (
-                    <StarIcon key={s} size={12} className="text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-slate-700 leading-relaxed flex-1">"{t.quote}"</p>
-                <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
-                  <div className={`w-8 h-8 rounded-full ${t.color} text-white text-xs font-bold flex items-center justify-center shrink-0`}>
-                    {t.initials}
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-900">{t.name}</p>
-                    <p className="text-xs text-slate-500">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -392,10 +294,10 @@ export default function LandingPage() {
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link to="/login" className="inline-flex items-center gap-1.5 bg-white text-blue-900 text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors">
-              Get started for free <ArrowRightIcon size={13} />
+              Get started <ArrowRightIcon size={13} />
             </Link>
             <Link to="/browse" className="text-sm text-blue-300 hover:text-white transition-colors">
-              See a demo listing
+              Browse opportunities
             </Link>
           </div>
         </div>

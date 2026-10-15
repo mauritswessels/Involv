@@ -9,7 +9,6 @@ import ParticipationPanel from '../components/activity/ParticipationPanel';
 import PrivateReflectionsPanel from '../components/activity/PrivateReflectionsPanel';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFERRED = ['Gallery', 'Certificate'];
 
 export default function ActivityHubFoundation() {
   const { opportunityId = '' } = useParams<{ opportunityId: string }>();
@@ -93,13 +92,13 @@ export default function ActivityHubFoundation() {
             <Link to={`/chat/${opportunityId}`} className="btn-secondary text-xs shrink-0">Group chat</Link>
           </div>
           <div className="flex overflow-x-auto scrollbar-hide -mb-px" role="tablist" aria-label="Activity hub sections">
-            {['Announcements', 'Sessions', 'Attendance', 'Hours', 'Reflections', ...DEFERRED].map(label => (
+            {['Announcements', 'Sessions', 'Attendance', 'Hours', 'Reflections'].map(label => (
               <button key={label} role="tab" aria-selected={tab === label} aria-controls="activity-panel"
                 onClick={() => setTab(label)}
                 className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${tab === label ? 'border-blue-900 text-blue-900' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
                 {label === 'Announcements' && <MegaphoneIcon size={14} />}
                 {label === 'Sessions' && <CalendarIcon size={14} />}
-                {label}{DEFERRED.includes(label) && <span className="text-[10px] text-slate-400">Later</span>}
+                {label}
               </button>
             ))}
           </div>
@@ -125,10 +124,6 @@ export default function ActivityHubFoundation() {
             key={`${key}:${tab}`} opportunityId={opportunityId} userId={user.id} section={tab}
             sessions={hub.sessions} participants={hub.participants} onAccessDenied={refresh}
           />}
-          {DEFERRED.includes(tab) && <div className="card p-8 text-center space-y-2">
-            <h2 className="font-semibold text-slate-900">{tab} is not connected yet</h2>
-            <p className="text-sm text-slate-500">This will be added in a later backend chunk. No sample records or temporary changes are shown as real activity data.</p>
-          </div>}
         </section>
       </main>
     </div>
