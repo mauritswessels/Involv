@@ -75,7 +75,12 @@ tests only in a separately verified test environment, never against student reco
 
 **Owner: pilot sponsor and approved activity managers**
 
-- [ ] Have at least one genuine, school-approved activity ready; ideally two.
+Organisers will join and post their own activities. The supplied school opportunity
+list is reference material, not an instruction to pre-populate the live catalogue.
+Complete this section as organisers onboard, before students apply.
+
+- [ ] Confirm an approved organiser can create and manage their own listing.
+- [ ] Have at least one organiser-posted, school-approved activity ready for student applications; ideally two.
 - [ ] Check title, description, location, eligibility, manager, capacity, application
       deadline and session dates with the responsible person.
 - [ ] Replace or archive outdated/example listings only with the owner's approval.
@@ -152,8 +157,9 @@ privacy approval. Certificates and galleries are not required for this pilot.
 
 ## Working order
 
-1. **Now, while waiting for IT:** prepare genuine activity details, finalise the
-   school decisions and support plan, and check environment/recovery readiness.
+1. **Now, while waiting for IT:** prepare organiser onboarding, finalise the school
+   decisions and support plan, and check environment/recovery readiness. Do not
+   publish activities on organisers' behalf.
 2. **Once school access is approved:** run the single hosted rehearsal and fix
    any blockers it finds.
 3. **Then:** obtain sign-off and invite only the agreed small group.
