@@ -1,5 +1,10 @@
 # Involv launch readiness
 
+For the first small supervised student pilot, start with
+[`STUDENT_PILOT_CHECKLIST.md`](./STUDENT_PILOT_CHECKLIST.md). It separates reported
+installations from hosted verification and school approval. This broader checklist
+does not establish that the pilot is cleared to launch.
+
 Use this checklist before giving a school-wide group access to Involv. Production
 changes should be performed against the intended Supabase project only after the
 project URL, migration history, and backup status are confirmed.
