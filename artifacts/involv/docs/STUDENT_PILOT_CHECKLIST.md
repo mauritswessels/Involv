@@ -79,6 +79,11 @@ Organisers will join and post their own activities. The supplied school opportun
 list is reference material, not an instruction to pre-populate the live catalogue.
 Complete this section as organisers onboard, before students apply.
 
+An admin-requested import of three dated events is prepared separately at
+[`supabase/imports/2026_26_27_school_opportunities.sql`](../supabase/imports/2026_26_27_school_opportunities.sql).
+It requires a school admin to run and verify it in the correct Supabase project.
+The undated Arts and Crafts item is intentionally excluded.
+
 - [ ] Confirm an approved organiser can create and manage their own listing.
 - [ ] Have at least one organiser-posted, school-approved activity ready for student applications; ideally two.
 - [ ] Check title, description, location, eligibility, manager, capacity, application
