@@ -83,6 +83,9 @@ An admin-requested import of three dated events is prepared separately at
 [`supabase/imports/2026_26_27_school_opportunities.sql`](../supabase/imports/2026_26_27_school_opportunities.sql).
 It requires a school admin to run and verify it in the correct Supabase project.
 The undated Arts and Crafts item is intentionally excluded.
+If the original demo listings are still published, the optional reversible
+cleanup is [`supabase/imports/archive_sample_opportunities.sql`](../supabase/imports/archive_sample_opportunities.sql);
+it matches only the sample titles, dates, featured flags and unassigned rows.
 
 - [ ] Confirm an approved organiser can create and manage their own listing.
 - [ ] Have at least one organiser-posted, school-approved activity ready for student applications; ideally two.
