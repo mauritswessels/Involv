@@ -13,7 +13,7 @@ authorization functions exist before it changes anything.
 
 This migration adds `service_programs` and `image_path`, grants public reads of
 only those two new opportunity fields (not organizer email), and creates the
-`opportunity-images` public Storage bucket and access policies. It is additive:
+`involv-opportunity-images` public Storage bucket and access policies. It is additive:
 existing opportunities get no programme tags and no image automatically.
 
 You can confirm setup with:
@@ -27,7 +27,7 @@ where table_schema = 'public'
 
 select id, public, file_size_limit, allowed_mime_types
 from storage.buckets
-where id = 'opportunity-images';
+where id = 'involv-opportunity-images';
 ```
 
 Both opportunity columns should appear. The bucket should be public, limited to

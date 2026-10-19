@@ -32,7 +32,7 @@ assert.equal(matchesOpportunityTaxonomy(researchBoth, '', ['IB DP', 'HSP']), tru
 const supabase = {
   storage: {
     from(bucket) {
-      assert.equal(bucket, 'opportunity-images');
+      assert.equal(bucket, 'involv-opportunity-images');
       return { getPublicUrl: path => ({ data: { publicUrl: `https://images.example/${path}` } }) };
     },
   },
@@ -52,6 +52,9 @@ const { actionError } = loadTypeScript('src/utils/actionError.ts');
 assert.match(actionError({ code: 'PGRST204' }, 'load'), /opportunity filters and images migration/);
 
 const migration = read('supabase/migrations/20261019000001_opportunity_service_programs_images.sql');
+assert.match(migration, /'involv-opportunity-images'/);
+assert.match(migration, /ON CONFLICT \(id\) DO NOTHING/);
+assert.match(migration, /already exists with different settings/);
 assert.match(migration, /GRANT SELECT \(service_programs, image_path\)[\s\S]*TO anon, authenticated/);
 assert.match(migration, /file_size_limit[\s\S]*5242880/);
 assert.match(migration, /ARRAY\['image\/jpeg', 'image\/png', 'image\/webp'\]/);

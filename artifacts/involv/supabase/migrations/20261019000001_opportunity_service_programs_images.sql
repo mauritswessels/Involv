@@ -40,7 +40,7 @@ COMMENT ON COLUMN public.opportunities.impact_type IS
 COMMENT ON COLUMN public.opportunities.service_programs IS
   'School-confirmed programme tags: IB DP and/or HSP.';
 COMMENT ON COLUMN public.opportunities.image_path IS
-  'Path to the public opportunity image in the opportunity-images Storage bucket.';
+  'Path to the public opportunity image in the involv-opportunity-images Storage bucket.';
 
 -- Preserve the opportunity privacy allowlist: only these two new public fields
 -- are added; organizer_email remains private.
@@ -57,27 +57,40 @@ GRANT UPDATE (service_programs, image_path)
 INSERT INTO storage.buckets (
   id, name, public, file_size_limit, allowed_mime_types
 ) VALUES (
-  'opportunity-images',
-  'opportunity-images',
+  'involv-opportunity-images',
+  'involv-opportunity-images',
   true,
   5242880,
   ARRAY['image/jpeg', 'image/png', 'image/webp']
 )
-ON CONFLICT (id) DO UPDATE SET
-  public = EXCLUDED.public,
-  file_size_limit = EXCLUDED.file_size_limit,
-  allowed_mime_types = EXCLUDED.allowed_mime_types;
+ON CONFLICT (id) DO NOTHING;
+
+-- Do not silently change an existing bucket's access or size settings.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM storage.buckets
+    WHERE id = 'involv-opportunity-images'
+      AND public = true
+      AND file_size_limit = 5242880
+      AND allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp']
+  ) THEN
+    RAISE EXCEPTION 'The Involv image bucket already exists with different settings; inspect it before applying this migration.';
+  END IF;
+END;
+$$;
 
 DROP POLICY IF EXISTS "Public can view Involv opportunity images" ON storage.objects;
 CREATE POLICY "Public can view Involv opportunity images"
   ON storage.objects FOR SELECT TO anon, authenticated
-  USING (bucket_id = 'opportunity-images');
+  USING (bucket_id = 'involv-opportunity-images');
 
 DROP POLICY IF EXISTS "Approved publishers upload Involv opportunity images" ON storage.objects;
 CREATE POLICY "Approved publishers upload Involv opportunity images"
   ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (
-    bucket_id = 'opportunity-images'
+    bucket_id = 'involv-opportunity-images'
     AND public.can_publish_opportunities()
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
@@ -86,7 +99,7 @@ DROP POLICY IF EXISTS "Publishers remove managed Involv opportunity images" ON s
 CREATE POLICY "Publishers remove managed Involv opportunity images"
   ON storage.objects FOR DELETE TO authenticated
   USING (
-    bucket_id = 'opportunity-images'
+    bucket_id = 'involv-opportunity-images'
     AND public.can_publish_opportunities()
     AND (
       (storage.foldername(name))[1] = auth.uid()::text

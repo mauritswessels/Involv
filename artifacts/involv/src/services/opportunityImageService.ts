@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-export const OPPORTUNITY_IMAGE_BUCKET = 'opportunity-images';
+export const OPPORTUNITY_IMAGE_BUCKET = 'involv-opportunity-images';
 export const MAX_OPPORTUNITY_IMAGE_BYTES = 5 * 1024 * 1024;
 
 const IMAGE_TYPES = {
