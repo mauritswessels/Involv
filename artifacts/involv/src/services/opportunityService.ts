@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import type { Opportunity } from '../types';
 import type { Database } from '../lib/database.types';
 import { PUBLIC_OPPORTUNITY_FIELDS } from './opportunityFields';
+import { opportunityImagePublicUrl } from './opportunityImageService';
 
 type OpportunityRow = Omit<Database['public']['Tables']['opportunities']['Row'], 'organizer_email' | 'updated_at' | 'cv_relevance'>;
 
@@ -22,7 +23,10 @@ export function rowToOpportunity(row: OpportunityRow): Opportunity {
     timeCommitment: row.time_commitment,
     durationType: row.duration_type as Opportunity['durationType'],
     skillLevel: row.skill_level as Opportunity['skillLevel'],
-    impactType: row.impact_type as Opportunity['impactType'],
+    serviceType: row.impact_type as Opportunity['serviceType'],
+    servicePrograms: (row.service_programs ?? []) as Opportunity['servicePrograms'],
+    imagePath: row.image_path,
+    imageUrl: opportunityImagePublicUrl(row.image_path),
     skillsRequired: row.skills_required,
     minGradeOrAge: row.min_grade_or_age,
     languageRequirements: row.language_requirements,
@@ -78,7 +82,9 @@ export async function createOpportunity(
     timeCommitment: string;
     durationType: string;
     skillLevel: string;
-    impactType: string;
+    serviceType: string;
+    servicePrograms: string[];
+    imagePath?: string | null;
     skillsRequired: string[];
     minGradeOrAge: string;
     positionsAvailable: number;
@@ -106,7 +112,9 @@ export async function createOpportunity(
       time_commitment: opp.timeCommitment,
       duration_type: opp.durationType,
       skill_level: opp.skillLevel,
-      impact_type: opp.impactType,
+      impact_type: opp.serviceType,
+      service_programs: opp.servicePrograms,
+      image_path: opp.imagePath ?? null,
       skills_required: opp.skillsRequired,
       min_grade_or_age: opp.minGradeOrAge,
       positions_available: opp.positionsAvailable,
@@ -147,7 +155,9 @@ export async function updateOpportunity(
     timeCommitment?: string;
     durationType?: string;
     skillLevel?: string;
-    impactType?: string;
+    serviceType?: string;
+    servicePrograms?: string[];
+    imagePath?: string | null;
     skillsRequired?: string[];
     minGradeOrAge?: string;
     positionsAvailable?: number;
@@ -171,7 +181,9 @@ export async function updateOpportunity(
   if (updates.timeCommitment !== undefined) dbUpdates.time_commitment = updates.timeCommitment;
   if (updates.durationType !== undefined) dbUpdates.duration_type = updates.durationType;
   if (updates.skillLevel !== undefined) dbUpdates.skill_level = updates.skillLevel;
-  if (updates.impactType !== undefined) dbUpdates.impact_type = updates.impactType;
+  if (updates.serviceType !== undefined) dbUpdates.impact_type = updates.serviceType;
+  if (updates.servicePrograms !== undefined) dbUpdates.service_programs = updates.servicePrograms;
+  if (updates.imagePath !== undefined) dbUpdates.image_path = updates.imagePath;
   if (updates.skillsRequired !== undefined) dbUpdates.skills_required = updates.skillsRequired;
   if (updates.minGradeOrAge !== undefined) dbUpdates.min_grade_or_age = updates.minGradeOrAge;
   if (updates.positionsAvailable !== undefined) dbUpdates.positions_available = updates.positionsAvailable;

@@ -8,3 +8,4 @@
 - [Private reflections](reflection-privacy.md) — personal notes, not teacher-reviewed submissions; manager/admin roles do not grant access.
 - [Pilot privacy](pilot-privacy.md) — protect catalogue contacts across reads and change streams; keep raw student text out of the full logging path.
 - [Application capacity](application-capacity-policy.md) — only accepted students consume places; pending applications do not reserve them.
+- [Involv service taxonomy](service-taxonomy.md) — one service type per listing; IB DP and HSP programme tags, with HSP meaning High School Program.

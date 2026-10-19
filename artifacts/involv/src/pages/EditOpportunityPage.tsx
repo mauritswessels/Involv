@@ -6,6 +6,14 @@ import { getOrganizerOpportunities, getOpportunityContact, updateOpportunity, se
 import { actionError } from '../utils/actionError';
 import type { Opportunity } from '../types';
 import { logSafeError } from '../utils/safeConsole';
+import { getAllOpportunitiesAdmin } from '../services/adminService';
+import OpportunityImageField from '../components/opportunities/OpportunityImageField';
+import {
+  opportunityImagePublicUrl,
+  removeOpportunityImage,
+  uploadOpportunityImage,
+} from '../services/opportunityImageService';
+import type { ServiceProgram, ServiceType } from '../types';
 
 const CATEGORIES = [
   'Community & Social Impact',
@@ -65,7 +73,8 @@ export default function EditOpportunityPage() {
     timeCommitment: '',
     durationType: '',
     skillLevel: 'Beginner',
-    impactType: 'Direct',
+    serviceType: 'Direct' as ServiceType,
+    servicePrograms: [] as ServiceProgram[],
     skillsRequired: [] as string[],
     minGradeOrAge: '',
     positionsAvailable: '',
@@ -77,11 +86,13 @@ export default function EditOpportunityPage() {
     organizerRole: '',
     organizerEmail: '',
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
 
   // Load the opportunity on mount
   useEffect(() => {
     if (!user || !id) return;
-    getOrganizerOpportunities(user.id)
+    (user.role === 'admin' ? getAllOpportunitiesAdmin() : getOrganizerOpportunities(user.id))
       .then(async opps => {
         const opp = opps.find(o => o.id === id) ?? null;
         if (opp) {
@@ -98,7 +109,8 @@ export default function EditOpportunityPage() {
             timeCommitment: opp.timeCommitment,
             durationType: opp.durationType,
             skillLevel: opp.skillLevel,
-            impactType: opp.impactType,
+            serviceType: opp.serviceType,
+            servicePrograms: opp.servicePrograms,
             skillsRequired: opp.skillsRequired,
             minGradeOrAge: opp.minGradeOrAge,
             positionsAvailable: String(opp.positionsAvailable),
@@ -132,7 +144,15 @@ export default function EditOpportunityPage() {
     if (!id) return;
     setSaving(true);
     setSaveError(null);
+    let uploadedImagePath: string | null = null;
+    const previousImagePath = opportunity?.imagePath ?? null;
     try {
+      if (imageFile) uploadedImagePath = await uploadOpportunityImage(user!.id, imageFile);
+      const imagePath = imageFile
+        ? uploadedImagePath
+        : removeCurrentImage
+          ? null
+          : previousImagePath;
       await updateOpportunity(id, {
         title: form.title,
         category: form.category,
@@ -147,7 +167,9 @@ export default function EditOpportunityPage() {
         timeCommitment: form.timeCommitment,
         durationType: form.durationType,
         skillLevel: form.skillLevel,
-        impactType: form.impactType,
+        serviceType: form.serviceType,
+        servicePrograms: form.servicePrograms,
+        imagePath,
         skillsRequired: form.skillsRequired,
         minGradeOrAge: form.minGradeOrAge,
         positionsAvailable: Number(form.positionsAvailable) || 1,
@@ -156,9 +178,26 @@ export default function EditOpportunityPage() {
         skillsGained: form.skillsGained,
         impactDescription: form.impactDescription,
       });
+      setOpportunity(current => current && ({
+        ...current,
+        serviceType: form.serviceType,
+        servicePrograms: form.servicePrograms,
+        imagePath,
+        imageUrl: opportunityImagePublicUrl(imagePath),
+      }));
+      if (previousImagePath && previousImagePath !== imagePath) {
+        try { await removeOpportunityImage(previousImagePath); }
+        catch (cleanupError) { logSafeError('[Opportunity] failed to clean up a replaced image', cleanupError); }
+      }
+      setImageFile(null);
+      setRemoveCurrentImage(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: unknown) {
+      if (uploadedImagePath) {
+        try { await removeOpportunityImage(uploadedImagePath); }
+        catch (cleanupError) { logSafeError('[Opportunity] failed to clean up an unused image', cleanupError); }
+      }
       setSaveError(actionError(err, 'listing'));
     } finally {
       setSaving(false);
@@ -170,13 +209,15 @@ export default function EditOpportunityPage() {
     setClosing(true);
     try {
       await setOpportunityStatus(id, 'closed');
-      navigate('/organizer');
+      navigate(managerHome);
     } catch (err: unknown) {
       setSaveError(actionError(err, 'listing'));
       setClosing(false);
       setConfirmClose(false);
     }
   };
+
+  const managerHome = user?.role === 'admin' ? '/admin' : '/organizer';
 
   if (loadError) return <div role="alert" className="max-w-xl mx-auto p-6 text-sm text-red-800">
     <p>{loadError}</p><button type="button" onClick={() => window.location.reload()} className="btn-secondary mt-3">Retry loading</button>
@@ -193,7 +234,7 @@ export default function EditOpportunityPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
         <p className="text-sm text-slate-600 mb-4">Opportunity not found or you don't have permission to edit it.</p>
-        <Link to="/organizer" className="btn-secondary">Back to dashboard</Link>
+        <Link to={managerHome} className="btn-secondary">Back to dashboard</Link>
       </div>
     );
   }
@@ -203,7 +244,7 @@ export default function EditOpportunityPage() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
           <Link
-            to="/organizer"
+            to={managerHome}
             className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 mb-3"
           >
             <ArrowLeftIcon size={13} />
@@ -333,10 +374,12 @@ export default function EditOpportunityPage() {
               </select>
             </div>
             <div>
-              <label className="label-base">Impact type</label>
-              <select value={form.impactType} onChange={e => set('impactType', e.target.value)} className="input-base">
-                <option>Direct</option>
-                <option>Indirect</option>
+              <label className="label-base">Service type *</label>
+              <select required value={form.serviceType} onChange={e => set('serviceType', e.target.value)} className="input-base">
+                <option value="Direct">Direct service</option>
+                <option value="Indirect">Indirect service</option>
+                <option value="Advocacy">Advocacy service</option>
+                <option value="Research">Research service</option>
               </select>
             </div>
             <div>
@@ -366,7 +409,41 @@ export default function EditOpportunityPage() {
               ))}
             </div>
           </div>
+          <div className="mt-5">
+            <p className="label-base mb-2">Programmes this activity is approved to count toward</p>
+            <p className="text-xs text-slate-500 mb-3">Select only programmes confirmed by the school. Students can filter by these labels.</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              {([
+                { value: 'IB DP' as const, label: 'IB Diploma Programme (IB DP)' },
+                { value: 'HSP' as const, label: 'High School Program (HSP)' },
+              ]).map(program => (
+                <label key={program.value} className="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={form.servicePrograms.includes(program.value)}
+                    onChange={() => setForm(f => ({
+                      ...f,
+                      servicePrograms: f.servicePrograms.includes(program.value)
+                        ? f.servicePrograms.filter(value => value !== program.value)
+                        : [...f.servicePrograms, program.value],
+                    }))}
+                    className="rounded border-slate-300 text-blue-900 focus:ring-blue-900/20 accent-blue-900"
+                  />
+                  {program.label}
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
+
+        <OpportunityImageField
+          currentImageUrl={opportunity.imageUrl}
+          file={imageFile}
+          removeCurrentImage={removeCurrentImage}
+          onFileChange={setImageFile}
+          onRemoveCurrentImageChange={setRemoveCurrentImage}
+          disabled={saving}
+        />
 
         {/* Section 4: Value */}
         <div className="card p-6">

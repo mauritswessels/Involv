@@ -6,7 +6,8 @@ import ApplicationModal from '../components/opportunities/ApplicationModal';
 import { EmptyState } from '../components/ui/EmptyState';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { useOpportunities } from '../hooks/useOpportunities';
-import type { FilterState, Category, LocationType, DurationType, SkillLevel, ImpactType, Opportunity } from '../types';
+import type { FilterState, Category, LocationType, DurationType, SkillLevel, ServiceType, ServiceProgram, Opportunity } from '../types';
+import { matchesOpportunityTaxonomy } from '../utils/opportunityTaxonomy';
 
 const CATEGORIES: Category[] = [
   'Community & Social Impact',
@@ -23,7 +24,11 @@ const CATEGORIES: Category[] = [
 const LOCATION_TYPES: LocationType[] = ['On-campus', 'Off-campus', 'Remote'];
 const DURATION_TYPES: DurationType[] = ['One-time', 'Ongoing', 'Fixed period'];
 const SKILL_LEVELS: SkillLevel[] = ['Beginner', 'Intermediate', 'Advanced'];
-const IMPACT_TYPES: ImpactType[] = ['Direct', 'Indirect'];
+const SERVICE_TYPES: ServiceType[] = ['Direct', 'Indirect', 'Advocacy', 'Research'];
+const SERVICE_PROGRAMS: { value: ServiceProgram; label: string }[] = [
+  { value: 'IB DP', label: 'IB Diploma Programme (IB DP)' },
+  { value: 'HSP', label: 'High School Program (HSP)' },
+];
 
 const defaultFilters: FilterState = {
   search: '',
@@ -31,7 +36,8 @@ const defaultFilters: FilterState = {
   locationType: '',
   durationType: '',
   skillLevel: '',
-  impactType: '',
+  serviceType: '',
+  servicePrograms: [],
   sortBy: 'newest',
 };
 
@@ -45,7 +51,7 @@ function FilterSection({ label, children }: { label: string; children: React.Rea
 }
 
 export default function BrowsePage() {
-  const { opportunities, loading } = useOpportunities();
+  const { opportunities, loading, error, retry } = useOpportunities();
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<FilterState>({
     ...defaultFilters,
@@ -77,6 +83,8 @@ export default function BrowsePage() {
           o.title.toLowerCase().includes(q) ||
           o.shortDescription.toLowerCase().includes(q) ||
           o.tags.some(t => t.toLowerCase().includes(q)) ||
+          o.serviceType.toLowerCase().includes(q) ||
+          o.servicePrograms.some(program => program.toLowerCase().includes(q)) ||
           o.category.toLowerCase().includes(q),
       );
     }
@@ -93,9 +101,9 @@ export default function BrowsePage() {
     if (filters.skillLevel) {
       list = list.filter(o => o.skillLevel === filters.skillLevel);
     }
-    if (filters.impactType) {
-      list = list.filter(o => o.impactType === filters.impactType);
-    }
+    list = list.filter(o =>
+      matchesOpportunityTaxonomy(o, filters.serviceType, filters.servicePrograms),
+    );
     switch (filters.sortBy) {
       case 'deadline':
         list.sort((a, b) => new Date(a.applicationDeadline).getTime() - new Date(b.applicationDeadline).getTime());
@@ -116,7 +124,8 @@ export default function BrowsePage() {
     (filters.locationType ? 1 : 0) +
     (filters.durationType ? 1 : 0) +
     (filters.skillLevel ? 1 : 0) +
-    (filters.impactType ? 1 : 0);
+    (filters.serviceType ? 1 : 0) +
+    filters.servicePrograms.length;
 
   const clearFilters = () =>
     setFilters(f => ({ ...defaultFilters, search: f.search }));
@@ -127,6 +136,14 @@ export default function BrowsePage() {
       categories: f.categories.includes(cat)
         ? f.categories.filter(c => c !== cat)
         : [...f.categories, cat],
+    }));
+
+  const toggleServiceProgram = (program: ServiceProgram) =>
+    setFilters(f => ({
+      ...f,
+      servicePrograms: f.servicePrograms.includes(program)
+        ? f.servicePrograms.filter(value => value !== program)
+        : [...f.servicePrograms, program],
     }));
 
   const FilterPanel = () => (
@@ -231,25 +248,49 @@ export default function BrowsePage() {
         </div>
       </FilterSection>
 
-      <FilterSection label="Impact type">
+      <FilterSection label="Service type">
         <div className="space-y-1.5">
-          {IMPACT_TYPES.map(t => (
+          {SERVICE_TYPES.map(t => (
             <label key={t} className="flex items-center gap-2.5 cursor-pointer group">
               <input
                 type="radio"
-                name="impact"
-                checked={filters.impactType === t}
+                name="service-type"
+                checked={filters.serviceType === t}
                 onChange={() =>
-                  setFilters(f => ({ ...f, impactType: f.impactType === t ? '' : t }))
+                  setFilters(f => ({ ...f, serviceType: f.serviceType === t ? '' : t }))
                 }
                 className="w-3.5 h-3.5 border-slate-300 text-blue-900 accent-blue-900"
               />
-              <span className="text-xs text-slate-700 group-hover:text-slate-900">{t}</span>
+              <span className="text-xs text-slate-700 group-hover:text-slate-900">{t} service</span>
             </label>
           ))}
-          {filters.impactType && (
+          {filters.serviceType && (
             <button
-              onClick={() => setFilters(f => ({ ...f, impactType: '' }))}
+              onClick={() => setFilters(f => ({ ...f, serviceType: '' }))}
+              className="text-xs text-slate-400 hover:text-slate-600 mt-0.5"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </FilterSection>
+
+      <FilterSection label="Programme">
+        <div className="space-y-1.5">
+          {SERVICE_PROGRAMS.map(program => (
+            <label key={program.value} className="flex items-center gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={filters.servicePrograms.includes(program.value)}
+                onChange={() => toggleServiceProgram(program.value)}
+                className="w-3.5 h-3.5 rounded border-slate-300 text-blue-900 focus:ring-blue-900/20 accent-blue-900"
+              />
+              <span className="text-xs text-slate-700 group-hover:text-slate-900">{program.label}</span>
+            </label>
+          ))}
+          {filters.servicePrograms.length > 0 && (
+            <button
+              onClick={() => setFilters(f => ({ ...f, servicePrograms: [] }))}
               className="text-xs text-slate-400 hover:text-slate-600 mt-0.5"
             >
               Clear
@@ -347,6 +388,23 @@ export default function BrowsePage() {
                   {filters.skillLevel} <XIcon size={10} />
                 </button>
               )}
+              {filters.serviceType && (
+                <button
+                  onClick={() => setFilters(f => ({ ...f, serviceType: '' }))}
+                  className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 border border-blue-200 rounded-full px-2.5 py-0.5 font-medium hover:bg-blue-100"
+                >
+                  {filters.serviceType} service <XIcon size={10} />
+                </button>
+              )}
+              {filters.servicePrograms.map(program => (
+                <button
+                  key={program}
+                  onClick={() => toggleServiceProgram(program)}
+                  className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 border border-blue-200 rounded-full px-2.5 py-0.5 font-medium hover:bg-blue-100"
+                >
+                  {program} <XIcon size={10} />
+                </button>
+              ))}
               <button onClick={clearFilters} className="text-xs text-slate-500 hover:text-slate-700 px-1.5 py-0.5">
                 Clear all
               </button>
@@ -354,6 +412,15 @@ export default function BrowsePage() {
           )}
         </div>
       </div>
+
+      {error && (
+        <div role="alert" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <span>{error}</span>
+            <button onClick={retry} className="btn-secondary shrink-0">Retry</button>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
         {/* Desktop sidebar */}
@@ -403,7 +470,7 @@ export default function BrowsePage() {
             <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
             </div>
-          ) : filtered.length === 0 ? (
+            ) : filtered.length === 0 && !error ? (
             <EmptyState
               heading="No opportunities found"
               description="Try adjusting your filters or search term to see more results."

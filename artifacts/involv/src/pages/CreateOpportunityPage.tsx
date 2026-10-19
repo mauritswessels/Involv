@@ -3,7 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { createOpportunity } from '../services/opportunityService';
-import type { Opportunity } from '../types';
+import OpportunityImageField from '../components/opportunities/OpportunityImageField';
+import { removeOpportunityImage, uploadOpportunityImage } from '../services/opportunityImageService';
+import { actionError } from '../utils/actionError';
+import { logSafeError } from '../utils/safeConsole';
+import type { Opportunity, ServiceProgram, ServiceType } from '../types';
 
 const CATEGORIES = [
   'Community & Social Impact',
@@ -22,6 +26,11 @@ const SKILLS_OPTIONS = [
   'Graphic design', 'Web development', 'Data analysis', 'Research', 'Public speaking',
   'Maths tutoring', 'Science tutoring', 'Photography', 'Video editing', 'Social media',
   'Empathy', 'Patience', 'Physical fitness', 'Foreign language',
+];
+const SERVICE_TYPES: ServiceType[] = ['Direct', 'Indirect', 'Advocacy', 'Research'];
+const SERVICE_PROGRAMS: { value: ServiceProgram; label: string }[] = [
+  { value: 'IB DP', label: 'IB Diploma Programme (IB DP)' },
+  { value: 'HSP', label: 'High School Program (HSP)' },
 ];
 
 function SectionHeader({ number, title, description }: { number: string; title: string; description: string }) {
@@ -47,6 +56,7 @@ export default function CreateOpportunityPage() {
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     title: duplicate ? `${duplicate.title} (Copy)` : '',
@@ -59,7 +69,8 @@ export default function CreateOpportunityPage() {
     timeCommitment: duplicate?.timeCommitment ?? '',
     durationType: duplicate?.durationType ?? '',
     skillLevel: duplicate?.skillLevel ?? 'Beginner',
-    impactType: duplicate?.impactType ?? 'Direct',
+    serviceType: duplicate?.serviceType ?? 'Direct',
+    servicePrograms: duplicate?.servicePrograms ?? [] as ServiceProgram[],
     skillsRequired: duplicate?.skillsRequired ?? [] as string[],
     minGradeOrAge: duplicate?.minGradeOrAge ?? '',
     positionsAvailable: duplicate ? String(duplicate.positionsAvailable) : '',
@@ -88,7 +99,9 @@ export default function CreateOpportunityPage() {
     if (!user) return;
     setSaving(true);
     setSaveError(null);
+    let uploadedImagePath: string | null = null;
     try {
+      if (imageFile) uploadedImagePath = await uploadOpportunityImage(user.id, imageFile);
       await createOpportunity(user.id, {
         title: form.title,
         category: form.category,
@@ -103,7 +116,9 @@ export default function CreateOpportunityPage() {
         timeCommitment: form.timeCommitment,
         durationType: form.durationType,
         skillLevel: form.skillLevel,
-        impactType: form.impactType,
+        serviceType: form.serviceType,
+        servicePrograms: form.servicePrograms,
+        imagePath: uploadedImagePath,
         skillsRequired: form.skillsRequired,
         minGradeOrAge: form.minGradeOrAge,
         positionsAvailable: Number(form.positionsAvailable) || 1,
@@ -115,7 +130,11 @@ export default function CreateOpportunityPage() {
       });
       setSubmitted(true);
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to post opportunity.');
+      if (uploadedImagePath) {
+        try { await removeOpportunityImage(uploadedImagePath); }
+        catch (cleanupError) { logSafeError('[Opportunity] failed to clean up an unused image', cleanupError); }
+      }
+      setSaveError(actionError(err, 'listing'));
     } finally {
       setSaving(false);
     }
@@ -208,6 +227,12 @@ export default function CreateOpportunityPage() {
             </div>
           </div>
         </div>
+
+        <OpportunityImageField
+          file={imageFile}
+          onFileChange={setImageFile}
+          disabled={saving}
+        />
 
         {/* Section 2: Logistics */}
         <div className="card p-6">
@@ -310,10 +335,9 @@ export default function CreateOpportunityPage() {
               </select>
             </div>
             <div>
-              <label className="label-base">Impact type</label>
-              <select value={form.impactType} onChange={e => set('impactType', e.target.value)} className="input-base">
-                <option>Direct</option>
-                <option>Indirect</option>
+              <label className="label-base">Service type *</label>
+              <select required value={form.serviceType} onChange={e => set('serviceType', e.target.value)} className="input-base">
+                {SERVICE_TYPES.map(type => <option key={type} value={type}>{type} service</option>)}
               </select>
             </div>
             <div>
@@ -343,6 +367,28 @@ export default function CreateOpportunityPage() {
                 >
                   {skill}
                 </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-5">
+            <p className="label-base mb-2">Programmes this activity is approved to count toward</p>
+            <p className="text-xs text-slate-500 mb-3">Select only programmes confirmed by the school. Students can filter by these labels.</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              {SERVICE_PROGRAMS.map(program => (
+                <label key={program.value} className="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={form.servicePrograms.includes(program.value)}
+                    onChange={() => setForm(f => ({
+                      ...f,
+                      servicePrograms: f.servicePrograms.includes(program.value)
+                        ? f.servicePrograms.filter(value => value !== program.value)
+                        : [...f.servicePrograms, program.value],
+                    }))}
+                    className="rounded border-slate-300 text-blue-900 focus:ring-blue-900/20 accent-blue-900"
+                  />
+                  {program.label}
+                </label>
               ))}
             </div>
           </div>

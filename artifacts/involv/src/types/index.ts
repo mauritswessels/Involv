@@ -31,7 +31,8 @@ export type Category =
 export type LocationType = 'On-campus' | 'Off-campus' | 'Remote';
 export type DurationType = 'One-time' | 'Ongoing' | 'Fixed period';
 export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced';
-export type ImpactType = 'Direct' | 'Indirect';
+export type ServiceType = 'Direct' | 'Indirect' | 'Advocacy' | 'Research';
+export type ServiceProgram = 'IB DP' | 'HSP';
 export type ApplicationStatus = 'Pending' | 'Under Review' | 'Accepted' | 'Rejected';
 export type SortOption = 'newest' | 'deadline' | 'relevant' | 'popular';
 
@@ -52,7 +53,11 @@ export interface Opportunity {
   timeCommitment: string;
   durationType: DurationType;
   skillLevel: SkillLevel;
-  impactType: ImpactType;
+  /** Stored in the legacy impact_type database column. */
+  serviceType: ServiceType;
+  servicePrograms: ServiceProgram[];
+  imagePath: string | null;
+  imageUrl: string | null;
   skillsRequired: string[];
   minGradeOrAge: string;
   languageRequirements: string[];
@@ -90,7 +95,8 @@ export interface FilterState {
   locationType: LocationType | '';
   durationType: DurationType | '';
   skillLevel: SkillLevel | '';
-  impactType: ImpactType | '';
+  serviceType: ServiceType | '';
+  servicePrograms: ServiceProgram[];
   sortBy: SortOption;
 }
 

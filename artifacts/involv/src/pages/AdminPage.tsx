@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   DownloadIcon,
   FileTextIcon,
@@ -468,13 +469,21 @@ export default function AdminPage() {
                               <button onClick={() => setConfirmDeleteOpp(null)} className="text-xs text-slate-400 hover:underline">No</button>
                             </div>
                           ) : (
-                            <button
-                              onClick={() => setConfirmDeleteOpp(opp.id)}
-                              className="text-slate-300 hover:text-red-500 transition-colors"
-                              title="Delete opportunity"
-                            >
-                              <Trash2Icon size={14} />
-                            </button>
+                            <div className="flex items-center justify-end gap-3">
+                              <Link
+                                to={`/edit/${opp.id}`}
+                                className="text-xs text-blue-800 hover:underline font-medium"
+                              >
+                                Edit
+                              </Link>
+                              <button
+                                onClick={() => setConfirmDeleteOpp(opp.id)}
+                                className="text-slate-300 hover:text-red-500 transition-colors"
+                                title="Delete opportunity"
+                              >
+                                <Trash2Icon size={14} />
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
