@@ -32,7 +32,6 @@ async function seedOpportunities(): Promise<void> {
     skill_level: o.skillLevel,
     impact_type: o.serviceType,
     service_programs: o.servicePrograms,
-    image_path: o.imagePath,
     skills_required: o.skillsRequired,
     min_grade_or_age: o.minGradeOrAge,
     language_requirements: o.languageRequirements,

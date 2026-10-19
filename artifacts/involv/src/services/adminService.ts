@@ -4,11 +4,6 @@ import type { Database } from '../lib/database.types';
 import type { Category } from '../types';
 import { rowToApplication } from './applicationService';
 import { PUBLIC_OPPORTUNITY_FIELDS } from './opportunityFields';
-import {
-  opportunityImagePublicUrl,
-  removeOpportunityImage,
-} from './opportunityImageService';
-import { logSafeError } from '../utils/safeConsole';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 type AdminProfileRow = Pick<
@@ -56,8 +51,8 @@ function rowToOpportunity(row: OpportunityRow): Opportunity {
     skillLevel: row.skill_level as Opportunity['skillLevel'],
     serviceType: row.impact_type as Opportunity['serviceType'],
     servicePrograms: (row.service_programs ?? []) as Opportunity['servicePrograms'],
-    imagePath: row.image_path,
-    imageUrl: opportunityImagePublicUrl(row.image_path),
+    imagePath: null,
+    imageUrl: null,
     skillsRequired: row.skills_required,
     minGradeOrAge: row.min_grade_or_age,
     languageRequirements: row.language_requirements,
@@ -128,27 +123,11 @@ export async function deleteUserProfile(uid: string): Promise<void> {
 
 /** Hard-delete an opportunity and all its applications (CASCADE). */
 export async function deleteOpportunity(id: string): Promise<void> {
-  const { data: listing, error: lookupError } = await supabase
-    .from('opportunities')
-    .select('image_path')
-    .eq('id', id)
-    .maybeSingle();
-  if (lookupError) throw lookupError;
-
   const { error } = await supabase
     .from('opportunities')
     .delete()
     .eq('id', id);
   if (error) throw error;
-
-  if (listing?.image_path) {
-    try {
-      await removeOpportunityImage(listing.image_path);
-    } catch (cleanupError) {
-      // The listing deletion is already committed; avoid reporting it as failed.
-      logSafeError('[Admin] failed to clean up a deleted opportunity image', cleanupError);
-    }
-  }
 }
 
 /** Toggle the featured flag on an opportunity. */

@@ -11,4 +11,5 @@ abbreviation while defining the catalogue filters.
 
 **How to apply:** Keep service type single-select. Programme tags may be
 multi-select, but only assign them when the school has confirmed the activity
-counts toward that programme.
+counts toward that programme. Keep listing image uploads disabled until the
+school approves their use and public visibility.

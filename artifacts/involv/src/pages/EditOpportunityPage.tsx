@@ -7,12 +7,6 @@ import { actionError } from '../utils/actionError';
 import type { Opportunity } from '../types';
 import { logSafeError } from '../utils/safeConsole';
 import { getAllOpportunitiesAdmin } from '../services/adminService';
-import OpportunityImageField from '../components/opportunities/OpportunityImageField';
-import {
-  opportunityImagePublicUrl,
-  removeOpportunityImage,
-  uploadOpportunityImage,
-} from '../services/opportunityImageService';
 import type { ServiceProgram, ServiceType } from '../types';
 
 const CATEGORIES = [
@@ -86,9 +80,6 @@ export default function EditOpportunityPage() {
     organizerRole: '',
     organizerEmail: '',
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
-
   // Load the opportunity on mount
   useEffect(() => {
     if (!user || !id) return;
@@ -144,15 +135,7 @@ export default function EditOpportunityPage() {
     if (!id) return;
     setSaving(true);
     setSaveError(null);
-    let uploadedImagePath: string | null = null;
-    const previousImagePath = opportunity?.imagePath ?? null;
     try {
-      if (imageFile) uploadedImagePath = await uploadOpportunityImage(user!.id, imageFile);
-      const imagePath = imageFile
-        ? uploadedImagePath
-        : removeCurrentImage
-          ? null
-          : previousImagePath;
       await updateOpportunity(id, {
         title: form.title,
         category: form.category,
@@ -169,7 +152,6 @@ export default function EditOpportunityPage() {
         skillLevel: form.skillLevel,
         serviceType: form.serviceType,
         servicePrograms: form.servicePrograms,
-        imagePath,
         skillsRequired: form.skillsRequired,
         minGradeOrAge: form.minGradeOrAge,
         positionsAvailable: Number(form.positionsAvailable) || 1,
@@ -182,22 +164,10 @@ export default function EditOpportunityPage() {
         ...current,
         serviceType: form.serviceType,
         servicePrograms: form.servicePrograms,
-        imagePath,
-        imageUrl: opportunityImagePublicUrl(imagePath),
       }));
-      if (previousImagePath && previousImagePath !== imagePath) {
-        try { await removeOpportunityImage(previousImagePath); }
-        catch (cleanupError) { logSafeError('[Opportunity] failed to clean up a replaced image', cleanupError); }
-      }
-      setImageFile(null);
-      setRemoveCurrentImage(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: unknown) {
-      if (uploadedImagePath) {
-        try { await removeOpportunityImage(uploadedImagePath); }
-        catch (cleanupError) { logSafeError('[Opportunity] failed to clean up an unused image', cleanupError); }
-      }
       setSaveError(actionError(err, 'listing'));
     } finally {
       setSaving(false);
@@ -435,15 +405,6 @@ export default function EditOpportunityPage() {
             </div>
           </div>
         </div>
-
-        <OpportunityImageField
-          currentImageUrl={opportunity.imageUrl}
-          file={imageFile}
-          removeCurrentImage={removeCurrentImage}
-          onFileChange={setImageFile}
-          onRemoveCurrentImageChange={setRemoveCurrentImage}
-          disabled={saving}
-        />
 
         {/* Section 4: Value */}
         <div className="card p-6">

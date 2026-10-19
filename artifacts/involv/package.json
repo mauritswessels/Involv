@@ -9,7 +9,7 @@
     "test:messaging-controls": "node tests/security/run-school-access.mjs --messaging-controls",
     "test:pilot-privacy": "node tests/security/run-school-access.mjs --pilot-privacy",
     "test:pilot-client": "node tests/security/pilot-client.mjs",
-    "test:opportunity-metadata-media": "node tests/security/opportunity-metadata-media.mjs",
+    "test:opportunity-taxonomy": "node tests/security/opportunity-taxonomy.mjs",
     "dev": "vite",
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",

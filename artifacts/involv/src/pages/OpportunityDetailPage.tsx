@@ -78,14 +78,6 @@ export default function OpportunityDetailPage() {
           <div className="flex-1 min-w-0 space-y-6">
             {/* Header */}
             <div className="card p-6">
-              {opportunity.imageUrl && (
-                <img
-                  src={opportunity.imageUrl}
-                  alt={`Image for ${opportunity.title}`}
-                  onError={event => { event.currentTarget.hidden = true; }}
-                  className="mb-5 w-full max-h-96 rounded-xl object-cover bg-slate-100"
-                />
-              )}
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
                   <CategoryBadge category={opportunity.category} size="md" />

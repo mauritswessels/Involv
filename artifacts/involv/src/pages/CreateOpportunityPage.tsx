@@ -3,10 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { createOpportunity } from '../services/opportunityService';
-import OpportunityImageField from '../components/opportunities/OpportunityImageField';
-import { removeOpportunityImage, uploadOpportunityImage } from '../services/opportunityImageService';
 import { actionError } from '../utils/actionError';
-import { logSafeError } from '../utils/safeConsole';
 import type { Opportunity, ServiceProgram, ServiceType } from '../types';
 
 const CATEGORIES = [
@@ -56,7 +53,6 @@ export default function CreateOpportunityPage() {
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     title: duplicate ? `${duplicate.title} (Copy)` : '',
@@ -99,9 +95,7 @@ export default function CreateOpportunityPage() {
     if (!user) return;
     setSaving(true);
     setSaveError(null);
-    let uploadedImagePath: string | null = null;
     try {
-      if (imageFile) uploadedImagePath = await uploadOpportunityImage(user.id, imageFile);
       await createOpportunity(user.id, {
         title: form.title,
         category: form.category,
@@ -118,7 +112,6 @@ export default function CreateOpportunityPage() {
         skillLevel: form.skillLevel,
         serviceType: form.serviceType,
         servicePrograms: form.servicePrograms,
-        imagePath: uploadedImagePath,
         skillsRequired: form.skillsRequired,
         minGradeOrAge: form.minGradeOrAge,
         positionsAvailable: Number(form.positionsAvailable) || 1,
@@ -130,10 +123,6 @@ export default function CreateOpportunityPage() {
       });
       setSubmitted(true);
     } catch (err: unknown) {
-      if (uploadedImagePath) {
-        try { await removeOpportunityImage(uploadedImagePath); }
-        catch (cleanupError) { logSafeError('[Opportunity] failed to clean up an unused image', cleanupError); }
-      }
       setSaveError(actionError(err, 'listing'));
     } finally {
       setSaving(false);
@@ -227,12 +216,6 @@ export default function CreateOpportunityPage() {
             </div>
           </div>
         </div>
-
-        <OpportunityImageField
-          file={imageFile}
-          onFileChange={setImageFile}
-          disabled={saving}
-        />
 
         {/* Section 2: Logistics */}
         <div className="card p-6">

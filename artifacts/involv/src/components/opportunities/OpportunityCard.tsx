@@ -30,14 +30,6 @@ export default function OpportunityCard({ opportunity, onApply, compact = false 
 
   return (
     <div className="card p-5 flex flex-col gap-3 hover:shadow-card transition-shadow">
-      {opportunity.imageUrl && (
-        <img
-          src={opportunity.imageUrl}
-          alt={`Image for ${opportunity.title}`}
-          onError={event => { event.currentTarget.hidden = true; }}
-          className="w-full h-40 rounded-xl object-cover bg-slate-100"
-        />
-      )}
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">

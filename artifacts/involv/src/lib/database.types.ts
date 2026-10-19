@@ -154,7 +154,6 @@ export type Database = {
           skill_level: string;
           impact_type: string;
           service_programs: string[];
-          image_path: string | null;
           skills_required: string[];
           min_grade_or_age: string;
           language_requirements: string[];
@@ -189,7 +188,6 @@ export type Database = {
           skill_level?: string;
           impact_type?: string;
           service_programs?: string[];
-          image_path?: string | null;
           skills_required?: string[];
           min_grade_or_age?: string;
           language_requirements?: string[];
@@ -221,7 +219,6 @@ export type Database = {
           skill_level?: string;
           impact_type?: string;
           service_programs?: string[];
-          image_path?: string | null;
           skills_required?: string[];
           min_grade_or_age?: string;
           language_requirements?: string[];

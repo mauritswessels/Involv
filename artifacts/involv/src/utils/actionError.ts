@@ -4,7 +4,7 @@ export function actionError(error: unknown, action: Action): string {
   const value = error && typeof error === 'object' ? error as { code?: unknown; status?: unknown } : {};
   const code = typeof value.code === 'string' ? value.code : '';
   if (code === '42703' || code === 'PGRST204') {
-    return 'The opportunity database needs the latest Involv setup before this can work. Apply the opportunity filters and images migration in Supabase, then refresh.';
+    return 'The opportunity database needs the latest Involv setup before this can work. Apply the opportunity programme filters migration in Supabase, then refresh.';
   }
   if (code === 'IV001') return 'This activity is no longer accepting applications. Your answers are kept here.';
   if (code === 'IV002') return 'The application deadline has passed (school time). Your answers are kept here.';
