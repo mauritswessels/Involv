@@ -29,10 +29,8 @@ assert.equal(matchesOpportunityTaxonomy(researchBoth, '', ['IB DP', 'HSP']), tru
 const migration = read('supabase/migrations/20261019000001_opportunity_service_programs.sql');
 assert.match(migration, /ADD COLUMN IF NOT EXISTS service_programs text\[\] NOT NULL DEFAULT '\{\}'/);
 assert.match(migration, /GRANT SELECT \(service_programs\)[\s\S]*TO anon, authenticated/);
-assert.match(migration, /public\.can_publish_opportunities\(\)/);
-assert.match(migration, /public\.is_admin\(uuid\)/);
 assert.doesNotMatch(migration, /image_path|storage\.(?:buckets|objects)/i);
-assert.doesNotMatch(migration, /GRANT[^;]*organizer_email/i);
+assert.doesNotMatch(migration, /can_publish_opportunities|is_admin|organizer_email/i);
 
 const publicFields = read('src/services/opportunityFields.ts');
 assert.match(publicFields, /service_programs/);

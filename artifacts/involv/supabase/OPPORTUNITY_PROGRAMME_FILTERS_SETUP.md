@@ -7,14 +7,14 @@ The website change depends on one additive Supabase migration:
 ## Apply it
 
 Run the whole migration in the SQL Editor for the same Supabase project Involv
-uses. Apply it after the school-access/trusted-role and public
-opportunity-privacy migrations. The SQL checks that the publisher and admin
-authorization functions exist before it changes anything.
+uses. Apply it after the public opportunity-privacy migration. This migration
+does not install or activate school-only login or trusted-role safeguards.
 
 This migration adds only the `service_programs` column. It does not create a
 Storage bucket, change image visibility, or add any image-upload capability.
-Organizer email remains private. Existing opportunities receive no programme
-tags automatically.
+It leaves existing row-level security policies unchanged and does not grant
+access to organizer email. Existing opportunities receive no programme tags
+automatically.
 
 You can confirm setup with:
 

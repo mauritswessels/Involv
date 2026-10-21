@@ -7,7 +7,7 @@ Only verified emails with the exact domain `iszl.ch` may use signed-in Involv fe
 
 **Why:** The user explicitly requested ISZL-only access and chose fresh administrator approval for existing teachers/organisers. Do not assume a school administrator already exists; hosted account checks did not establish one.
 
-**How to apply:** Preserve school administrators during access changes. Existing teacher/organiser privileges require fresh approval, not automatic grandfathering. Keep database identity checks authoritative; Google’s domain hint and editable profile metadata are not proof of membership. Work on remaining backend features in separate chunks, not a broad rewrite.
+**How to apply:** Preserve school administrators during access changes. Existing teacher/organiser privileges require fresh approval, not automatic grandfathering. Keep database identity checks authoritative; Google’s domain hint and editable profile metadata are not proof of membership. If the user defers school-only access while building other feature chunks, do not install these safeguards as an incidental prerequisite.
 
 School Google Workspace accounts cannot authorize unapproved third-party OAuth apps.
 
