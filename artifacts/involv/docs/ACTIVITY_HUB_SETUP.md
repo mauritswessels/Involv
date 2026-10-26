@@ -11,7 +11,7 @@
 - The database derives announcement authorship/session creator and timestamps; clients cannot spoof or reassign them.
 - New profiles must start as students, including direct API inserts. Role changes require administrators.
 - Draft/closed listings become readable by their approved owners so they can open their activity hubs.
-- Attendance and hours are implemented in the next participation migration; see `PARTICIPATION_SETUP.md`. Reflections, gallery, certificates and chat persistence remain later chunks. No fake records appear in the live hub.
+- Attendance and hours are implemented in the next participation migration; see `PARTICIPATION_SETUP.md`. Persistent group chat, author edit/removal and protected realtime are covered by `../supabase/GROUP_MESSAGING_SETUP.md` and `../supabase/MESSAGING_UPGRADE_SETUP.md`. Gallery and certificates remain separate work. No fake records appear in the live hub.
 
 ## Activate in the existing hosted Supabase project
 

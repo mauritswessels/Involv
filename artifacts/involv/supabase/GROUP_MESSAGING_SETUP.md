@@ -27,7 +27,12 @@ participant, the approved activity owner, and an unrelated account:
 5. An unrelated account must not read history or send. Revoke an accepted
    participant: the next request must fail and the UI must clear private chat data.
 
-The client uses permission-checked polling, not a public realtime channel. History
+Install the upgrade in `MESSAGING_UPGRADE_SETUP.md` immediately after this base
+migration for the current client: it supplies message-update recovery, author
+controls and protected realtime. This base migration alone is not the complete
+current setup.
+
+The base migration supports permission-checked polling, not a public realtime channel. History
 loads in pages of 50; missed messages are fetched forward in batches. Names, roles,
 sender IDs and timestamps are derived by the server. Sends are limited to 20 per
 minute per sender and 2,000 characters. Attachments, message editing/deletion,

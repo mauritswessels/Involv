@@ -63,12 +63,13 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
   }, []);
 
   const refresh = useCallback(async (): Promise<void> => {
-    if (denied.current) return;
+    if (!mounted.current || denied.current || !navigator.onLine) return;
     if (syncing.current) { refreshQueued.current = true; return; }
     syncing.current = true;
     try {
       if (!UUID.test(opportunityId)) throw new Error('Invalid activity link. Open chat from the Activity Hub.');
       const nextHub = await getActivityHub(opportunityId);
+      if (!mounted.current || denied.current) return;
       // Refresh edits/tombstones for every loaded page, including older messages.
       const ids = known.current.filter(m => m.updated_at).map(m => m.id);
       for (let offset = 0; offset < ids.length; offset += 100) {
@@ -90,7 +91,7 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
         if (batch.length) cursor.current = batch[batch.length - 1];
         if (batch.length < 50) break;
       }
-      if (mounted.current && !denied.current) { setHub(nextHub); setReady(true); setError(''); }
+      if (mounted.current && !denied.current && navigator.onLine) { setHub(nextHub); setReady(true); setError(''); }
     } catch (e) { report(e); }
     finally {
       syncing.current = false;
@@ -129,16 +130,26 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
 
   useEffect(() => {
     mounted.current = true;
-    void refresh();
+    const offline = () => {
+      setReady(false);
+      setRealtime(false);
+      setError('You are offline. Your draft has been kept. Reconnect to send or refresh messages.');
+    };
+    if (navigator.onLine) void refresh();
+    else offline();
     const update = () => { if (!document.hidden) void refresh(); };
     const interval = window.setInterval(update, 5000);
     window.addEventListener('focus', update);
     window.addEventListener('online', update);
+    window.addEventListener('offline', offline);
+    document.addEventListener('visibilitychange', update);
     return () => {
       mounted.current = false;
       window.clearInterval(interval);
       window.removeEventListener('focus', update);
       window.removeEventListener('online', update);
+      window.removeEventListener('offline', offline);
+      document.removeEventListener('visibilitychange', update);
     };
   }, [refresh]);
 

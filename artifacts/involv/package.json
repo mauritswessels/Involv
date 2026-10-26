@@ -7,6 +7,7 @@
     "test:applications": "node tests/security/run-school-access.mjs --applications && node tests/security/application-client.mjs",
     "test:corrections": "node tests/security/run-school-access.mjs --corrections",
     "test:messaging-controls": "node tests/security/run-school-access.mjs --messaging-controls",
+    "test:messaging-client": "node tests/security/messaging-client.mjs",
     "test:pilot-privacy": "node tests/security/run-school-access.mjs --pilot-privacy",
     "test:pilot-client": "node tests/security/pilot-client.mjs",
     "test:opportunity-taxonomy": "node tests/security/opportunity-taxonomy.mjs",

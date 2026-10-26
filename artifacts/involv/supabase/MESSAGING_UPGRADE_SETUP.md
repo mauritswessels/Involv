@@ -4,9 +4,16 @@ This upgrade requires the existing group-messaging migration and Supabase's
 `supabase_realtime` publication. It does not activate the school signup hook,
 change login restrictions, or allow managers to edit someone else's messages.
 
-1. Open `migrations/20261011000006_messaging_controls_realtime.sql`.
-2. Copy the entire file into a new Supabase SQL Editor query and run it once.
-3. Run this check separately; all three results should be true:
+1. Back up the existing project and preferably rehearse on staging. Confirm the
+   Activity Hub foundation and `20261011000003_activity_group_messages.sql` are
+   installed, following `GROUP_MESSAGING_SETUP.md`. Do not apply unrelated pending
+   migrations or enable the deferred school signup hook.
+2. Open `migrations/20261011000006_messaging_controls_realtime.sql`.
+3. Copy the entire file into a new Supabase SQL Editor query and run it once.
+   A missing `supabase_realtime` publication aborts the transaction without
+   partial changes; restore the standard Supabase Realtime publication before
+   retrying. Do not expose the table using a public Broadcast channel.
+4. Run this check separately; all three results should be true:
 
 ```sql
 SELECT
@@ -40,4 +47,18 @@ access. Inspect the realtime status while connected and after a connection loss.
 Local database tests confirm publication/RLS and RPC behavior, not hosted
 WebSocket delivery.
 
-Local checks: `pnpm --filter @workspace/involv run test:messaging-controls`.
+Database revocation is enforced on every subsequent read/write and Postgres
+Changes delivery. The browser clears previously displayed chat on its next
+denied request (refreshes run every five seconds in a visible, online tab,
+subject to network response time); already delivered
+text cannot be recalled from a disconnected client. Hidden tabs recheck on
+visibility/focus, and offline tabs show a disconnected state while preserving
+drafts. Reconnection rehydrates from permission-checked history, not event bodies.
+
+Local checks:
+
+```sh
+pnpm --filter @workspace/involv run test:messaging-controls
+pnpm --filter @workspace/involv run test:messaging-client
+pnpm --filter @workspace/involv exec tsc --noEmit
+```
