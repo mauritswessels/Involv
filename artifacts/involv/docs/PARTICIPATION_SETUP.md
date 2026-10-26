@@ -8,6 +8,13 @@ The foundation is already installed according to the user's SQL Editor checks. T
 2. Open project `aeestfejjpcxwyflrccm` → SQL Editor → New query.
 3. Run the complete `supabase/migrations/20261009000002_activity_participation.sql` file once.
 4. The script is atomic. On any error stop and investigate; do not rerun successful setup.
+   Then apply the complete additive hardening file
+   `supabase/migrations/20261026000001_participation_calendar_dates.sql`.
+   If participation was already installed, apply only this new hardening file.
+   It rejects infinite, BC and out-of-range calendar dates for sessions and
+   claims. If existing invalid dates cause installation to fail, the transaction
+   rolls back: investigate those records rather than deleting or rewriting
+   reviewed history to force installation.
 5. Verify with this read-only query (all three should be true):
 
    ```sql
@@ -30,6 +37,7 @@ This does not activate the school signup hook, reset roles or bypass school Goog
 - Rejected submissions preserve the original review; Submit again creates a new claim.
 - Owner/admin: approve or reject pending claims. Rejection requires a reason; decisions record the reviewer and time. No one can review their own claim, including administrators.
 - Only approved entries count towards approved totals. Pending/rejected totals are separate; manager totals are labelled as activity-wide.
+- Records and totals refresh after writes, on focus and every 30 seconds while visible. The panel shows the last successful update and warns when a refresh fails; this is polling, not instant push delivery.
 - Claims allow 0.01–24 hours, up to two decimals, no future dates, and descriptions up to 2,000 characters.
 - Pending + approved claims cannot exceed 24 hours per student per day across **all** activities. Concurrent submissions serialize at the database, not only in the browser.
 - Editing/withdrawal/review requires the exact previously loaded `updated_at`. A changed record must be refreshed; a review cannot silently approve an unseen edit.

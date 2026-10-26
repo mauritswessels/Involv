@@ -17,12 +17,13 @@ export default function ParticipationPanel(props: Props) {
   const [data, setData] = useState<ParticipationData | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [lastLoaded, setLastLoaded] = useState<Date | null>(null);
   const revision = useRef(0);
   const refresh = useCallback(async () => {
     const attempt = ++revision.current;
     try {
       const next = await getParticipation(opportunityId);
-      if (attempt === revision.current) { setData(next); setError(''); }
+      if (attempt === revision.current) { setData(next); setError(''); setLastLoaded(new Date()); }
     } catch (e) {
       if (attempt === revision.current) {
         setError(e instanceof Error ? e.message : 'Could not load participation records.');
@@ -50,8 +51,13 @@ export default function ParticipationPanel(props: Props) {
   return (
     <div className="space-y-4">
       {error && <div role="alert" className="card p-4 text-sm text-red-700">
-        {error} <button className="underline ml-2" onClick={() => void refresh().catch(() => {})}>Refresh</button>
+        {error} {data && 'The displayed records and totals may be out of date.'}
+        <button className="underline ml-2" onClick={() => void refresh().catch(() => {})}>Refresh</button>
       </div>}
+      {data && lastLoaded && <p className="text-xs text-slate-500">
+        Updated {lastLoaded.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.
+        {' '}Checks for changes every 30 seconds while this tab is visible.
+      </p>}
       {!data && loading && <p role="status" className="text-sm text-slate-500">Loading {section.toLowerCase()}…</p>}
       {data && section === 'Attendance' && <AttendanceTab
         opportunityId={opportunityId} userId={userId} canManage={data.canManage}

@@ -32,6 +32,9 @@ SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201',(now() 
  current_setting('test.hours_id')::uuid,current_setting('test.old_review_version')::timestamptz);
 SELECT set_config('test.hours_version',(SELECT updated_at::text FROM public.activity_hours WHERE id=current_setting('test.hours_id')::uuid),true);
 SELECT pg_temp.activity_denied($q$SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201',(now() AT TIME ZONE 'Europe/Zurich')::date+1,2,'Future')$q$,'23514');
+SELECT pg_temp.activity_denied($q$SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201','-infinity'::date,2,'Non-calendar date')$q$,'23514');
+SELECT pg_temp.activity_denied($q$SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201','infinity'::date,2,'Non-calendar date')$q$,'23514');
+SELECT pg_temp.activity_denied($q$SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201','0001-01-01 BC'::date,2,'Unsupported calendar date')$q$,'23514');
 SELECT pg_temp.activity_denied($q$SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201',(now() AT TIME ZONE 'Europe/Zurich')::date,0,'Zero')$q$,'23514');
 SELECT pg_temp.activity_denied($q$SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201',(now() AT TIME ZONE 'Europe/Zurich')::date,1.234,'Precision')$q$,'23514');
 SELECT pg_temp.activity_denied($q$SELECT public.save_activity_hours('00000000-0000-0000-0000-000000000201',(now() AT TIME ZONE 'Europe/Zurich')::date,1,'  ')$q$,'23514');
@@ -50,6 +53,12 @@ SELECT pg_temp.activity_denied($q$SELECT public.get_activity_participation('0000
 SELECT pg_temp.activity_denied($q$SELECT public.review_activity_hours(current_setting('test.hours_id')::uuid,'approved','',current_setting('test.hours_version')::timestamptz)$q$,'42501');
 SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000101');
 SELECT pg_temp.activity_assert((SELECT count(*)=2 FROM public.activity_attendance),'owner reads scoped roster attendance');
+-- Session dates are directly writable by managers, but must remain displayable
+-- calendar dates. Use a new session so the marked-date guard cannot mask this.
+SELECT pg_temp.activity_denied($q$INSERT INTO public.activity_sessions(opportunity_id,title,session_date,start_time,end_time,location,created_by)
+ VALUES('00000000-0000-0000-0000-000000000201','Invalid date','-infinity','09:00','10:00','School',auth.uid())$q$,'23514');
+SELECT pg_temp.activity_denied($q$INSERT INTO public.activity_sessions(opportunity_id,title,session_date,start_time,end_time,location,created_by)
+ VALUES('00000000-0000-0000-0000-000000000201','Invalid date','infinity','09:00','10:00','School',auth.uid())$q$,'23514');
 SELECT pg_temp.activity_denied($q$SELECT public.review_activity_hours(current_setting('test.hours_id')::uuid,'approved','',current_setting('test.old_review_version')::timestamptz)$q$,'40001');
 SELECT public.review_activity_hours(current_setting('test.hours_id')::uuid,'approved','Verified session',current_setting('test.hours_version')::timestamptz);
 SELECT pg_temp.activity_assert((SELECT status='approved' AND reviewed_by=auth.uid() AND hours=3.25 FROM public.activity_hours),'approved exact reviewed amount, derived reviewer');

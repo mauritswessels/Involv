@@ -109,7 +109,10 @@ try {
   }
   if (activityMode) {
     sql(readFileSync(join(root, 'supabase/migrations/20261009000001_activity_hub_foundation.sql'), 'utf8'));
-    if (participationMode) sql(readFileSync(join(root, 'supabase/migrations/20261009000002_activity_participation.sql'), 'utf8'));
+    if (participationMode) {
+      sql(readFileSync(join(root, 'supabase/migrations/20261009000002_activity_participation.sql'), 'utf8'));
+      sql(readFileSync(join(root, 'supabase/migrations/20261026000001_participation_calendar_dates.sql'), 'utf8'));
+    }
     if (portfolioMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000001_student_service_portfolio.sql'), 'utf8'));
     if (correctionsMode) {
       // Exercise installation over a pre-existing approval before transactional feature fixtures.
