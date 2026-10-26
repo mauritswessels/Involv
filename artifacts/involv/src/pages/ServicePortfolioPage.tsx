@@ -81,7 +81,7 @@ function PortfolioContent() {
             <p className="text-sm text-slate-500 mt-0.5">A private, honest record of your service contributions and how each was reviewed.</p>
           </div>
           <div className="flex gap-2">
-            <Link to="/reflections" className="btn-secondary text-xs">My private reflections</Link>
+            <Link to="/reflections" className="btn-secondary text-xs">My reflections</Link>
             <button data-testid="button-refresh-portfolio" type="button" onClick={() => void load()} disabled={loading || refreshing} className="btn-secondary text-xs disabled:opacity-50 disabled:cursor-not-allowed">
               <RefreshCwIcon size={13} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" /> Refresh
             </button>

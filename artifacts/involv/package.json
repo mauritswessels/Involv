@@ -20,7 +20,7 @@
     "test:school-access": "node tests/security/run-school-access.mjs",
     "test:activity": "node tests/security/run-school-access.mjs --activity",
     "test:messaging": "node tests/security/run-school-access.mjs --messaging",
-    "test:reflections": "node tests/security/run-school-access.mjs --reflections",
+    "test:reflections": "node tests/security/run-school-access.mjs --reflections && node tests/security/reflection-client.mjs",
     "test:participation": "node tests/security/run-school-access.mjs --participation",
     "test:portfolio": "node tests/security/run-school-access.mjs --portfolio && node tests/security/portfolio-csv.mjs",
     "load:50": "VUS=50 node tests/load/launch-readiness.mjs",

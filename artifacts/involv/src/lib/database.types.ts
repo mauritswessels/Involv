@@ -307,6 +307,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_managed_activity_reflections: {
+        Args: { target_opportunity_id: string; before_created_at: string | null; before_id: string | null };
+        Returns: unknown;
+      };
       get_opportunity_contact: { Args: { target_opportunity_id: string }; Returns: string };
       get_my_activity_reflections: {
         Args: { target_opportunity_id: string | null; before_created_at: string | null; before_id: string | null };

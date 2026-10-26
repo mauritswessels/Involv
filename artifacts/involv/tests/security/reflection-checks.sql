@@ -31,8 +31,10 @@ SELECT pg_temp.activity_denied($q$SELECT public.save_my_activity_reflection('000
 SELECT pg_temp.activity_denied($q$SELECT public.delete_my_activity_reflection(current_setting('test.reflection_id')::uuid,
  (current_setting('test.reflection_first')::jsonb->>'updated_at')::timestamptz)$q$,'40001');
 SELECT pg_temp.activity_assert(public.get_my_activity_reflections('00000000-0000-0000-0000-000000000201')->>'can_create'='true','accepted student can create');
+SELECT pg_temp.activity_assert(public.get_my_activity_reflections('00000000-0000-0000-0000-000000000201')->'entries'->0
+ =current_setting('test.reflection_updated')::jsonb,'fresh read returns saved edit without client state');
 
--- Even a manager/admin cannot view or mutate another person's reflection.
+-- Educator read access is activity-scoped; personal history stays author-scoped.
 DO $$ DECLARE identity text; BEGIN
   FOREACH identity IN ARRAY ARRAY[
     '00000000-0000-0000-0000-000000000104', '00000000-0000-0000-0000-000000000105',
@@ -40,7 +42,14 @@ DO $$ DECLARE identity text; BEGIN
     '00000000-0000-0000-0000-000000000001'
   ] LOOP
     PERFORM pg_temp.activity_user(identity);
-    PERFORM pg_temp.activity_assert((SELECT count(*)=0 FROM public.activity_reflections),'foreign table read denied');
+    IF identity IN ('00000000-0000-0000-0000-000000000101','00000000-0000-0000-0000-000000000001') THEN
+      PERFORM pg_temp.activity_assert((SELECT count(*)=1 FROM public.activity_reflections),'owner/admin table read allowed');
+      PERFORM pg_temp.activity_assert(jsonb_array_length(public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201'))=1,'owner/admin scoped RPC read allowed');
+      PERFORM pg_temp.activity_assert(public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201')->0->>'author_name'='Accepted participant','author name comes from server profile');
+    ELSE
+      PERFORM pg_temp.activity_assert((SELECT count(*)=0 FROM public.activity_reflections),'foreign table read denied');
+      PERFORM pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201')$q$,'42501');
+    END IF;
     PERFORM pg_temp.activity_assert(jsonb_array_length(public.get_my_activity_reflections()->'entries')=0,'foreign RPC read denied');
     PERFORM pg_temp.activity_denied($q$SELECT public.save_my_activity_reflection('00000000-0000-0000-0000-000000000201',
       current_setting('test.reflection_content'),current_setting('test.reflection_id')::uuid,
@@ -51,11 +60,39 @@ DO $$ DECLARE identity text; BEGIN
       current_setting('test.reflection_content'),gen_random_uuid())$q$,'42501');
   END LOOP;
 END $$;
+-- Even accepted classmates cannot read each other's notes.
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000101');
+UPDATE public.applications SET status='Accepted' WHERE id='00000000-0000-0000-0000-000000000302';
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000104');
+SELECT pg_temp.activity_assert((SELECT count(*)=0 FROM public.activity_reflections),'accepted classmate cannot read another student');
+SELECT pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201')$q$,'42501');
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000101');
+UPDATE public.applications SET status='Pending' WHERE id='00000000-0000-0000-0000-000000000302';
+-- Current approved role is required, not just ownership or JWT metadata.
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000001');
+UPDATE public.profiles SET role='student' WHERE id='00000000-0000-0000-0000-000000000101';
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000101');
+SELECT set_config('request.jwt.claims','{"role":"admin","user_metadata":{"role":"admin"}}',true);
+SELECT pg_temp.activity_assert((SELECT count(*)=0 FROM public.activity_reflections),'downgraded owner loses table read immediately');
+SELECT pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201')$q$,'42501');
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000001');
+UPDATE public.profiles SET role='teacher' WHERE id='00000000-0000-0000-0000-000000000101';
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000101');
+SELECT pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000202')$q$,'42501');
+SELECT pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections(NULL)$q$,'42501');
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000103');
+SELECT pg_temp.activity_denied($q$SELECT public.save_my_activity_reflection('00000000-0000-0000-0000-000000000202',
+ current_setting('test.reflection_content'),current_setting('test.reflection_id')::uuid,
+ (current_setting('test.reflection_updated')::jsonb->>'updated_at')::timestamptz)$q$,'42501');
+SELECT pg_temp.activity_denied($q$UPDATE public.activity_reflections SET student_id='00000000-0000-0000-0000-000000000104'$q$,'42501');
 SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000005');
 SELECT pg_temp.activity_denied($q$SELECT public.get_my_activity_reflections()$q$,'42501');
+SELECT pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201')$q$,'42501');
 SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000007');
 SELECT pg_temp.activity_denied($q$SELECT public.get_my_activity_reflections()$q$,'42501');
+SELECT pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201')$q$,'42501');
 SET LOCAL ROLE anon;
+SELECT pg_temp.activity_denied($q$SELECT public.get_managed_activity_reflections('00000000-0000-0000-0000-000000000201')$q$,'42501');
 SELECT pg_temp.activity_denied($q$SELECT public.get_my_activity_reflections()$q$,'42501');
 SELECT pg_temp.activity_denied($q$SELECT * FROM public.activity_reflections$q$,'42501');
 SET LOCAL ROLE authenticated;
@@ -95,6 +132,9 @@ SELECT pg_temp.activity_assert(jsonb_array_length(current_setting('test.reflecti
 SELECT pg_temp.activity_assert(NOT EXISTS(SELECT 1 FROM
  jsonb_array_elements(current_setting('test.reflection_page')::jsonb) a,
  jsonb_array_elements(current_setting('test.reflection_older')::jsonb) b WHERE a->>'id'=b->>'id'),'history pages do not overlap');
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000001');
+SELECT pg_temp.activity_assert((SELECT count(*)=0 FROM public.activity_reflections),'admin cannot read reflections with no remaining activity');
+SELECT pg_temp.activity_user('00000000-0000-0000-0000-000000000103');
 SELECT public.save_my_activity_reflection(NULL,current_setting('test.reflection_content')||' orphan edit',
  (current_setting('test.reflection_page')::jsonb->0->>'id')::uuid,
  (current_setting('test.reflection_page')::jsonb->0->>'updated_at')::timestamptz);

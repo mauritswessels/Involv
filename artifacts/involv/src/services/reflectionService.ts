@@ -13,7 +13,7 @@ function failure(error: { code?: string }): Error {
   if (error.code === '42501') message = 'You do not have permission to perform this reflection action. A verified school account is required; only accepted students can start new activity reflections.';
   if (error.code === '40001') message = 'This reflection changed or was removed in another tab. Your draft is kept. Refresh, then reopen the latest saved entry before editing or deleting it.';
   if (error.code === '23514') message = 'Write at least 30 words and no more than 10,000 characters.';
-  if (['PGRST202', '42P01', '42883'].includes(error.code ?? '')) message = 'Private reflections are not activated yet. Ask the site administrator to apply the private-reflections migration.';
+  if (['PGRST202', '42P01', '42883'].includes(error.code ?? '')) message = 'Reflections are not activated yet. Ask the site administrator to apply the reflection migrations in the activation guide.';
   return Object.assign(new Error(message), { code: error.code });
 }
 function parse(value: unknown): PrivateReflection {
@@ -50,4 +50,22 @@ export async function deleteMyReflection(entry: PrivateReflection) {
     target_reflection_id: entry.id, expected_updated_at: entry.updated_at,
   });
   if (error) throw failure(error);
+}
+
+export interface ManagedReflection extends PrivateReflection { author_name: string }
+export async function getManagedReflections(opportunityId: string, before?: ManagedReflection): Promise<ManagedReflection[]> {
+  const { data, error } = await supabase.rpc('get_managed_activity_reflections', {
+    target_opportunity_id: opportunityId,
+    before_created_at: before?.created_at ?? null, before_id: before?.id ?? null,
+  });
+  if (error) {
+    if (error.code === '42501') throw Object.assign(new Error('Reflection access is no longer available. Only the current approved activity owner and school admins can read student reflections.'), { code: error.code });
+    throw failure(error);
+  }
+  if (!Array.isArray(data)) throw new Error('Invalid activity reflection response.');
+  return data.map(value => {
+    const entry = parse(value);
+    if (typeof value.author_name !== 'string') throw new Error('Invalid reflection author response.');
+    return { ...entry, author_name: value.author_name };
+  });
 }

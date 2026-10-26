@@ -7,6 +7,7 @@ import AnnouncementsTab from '../components/activity/AnnouncementsTab';
 import SessionsTab from '../components/activity/SessionsTab';
 import ParticipationPanel from '../components/activity/ParticipationPanel';
 import PrivateReflectionsPanel from '../components/activity/PrivateReflectionsPanel';
+import ManagedReflectionsPanel from '../components/activity/ManagedReflectionsPanel';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -119,7 +120,9 @@ export default function ActivityHubFoundation() {
         <section id="activity-panel" role="tabpanel" aria-label={tab}>
           {tab === 'Announcements' && <AnnouncementsTab key={key} opportunityId={opportunityId} canManage={hub.canManage} items={hub.announcements} onChanged={refresh} />}
           {tab === 'Sessions' && <SessionsTab key={key} opportunityId={opportunityId} canManage={hub.canManage} items={hub.sessions} onChanged={refresh} />}
-          {tab === 'Reflections' && user && <PrivateReflectionsPanel key={key} opportunityId={opportunityId} />}
+          {tab === 'Reflections' && user && (hub.canManage
+            ? <ManagedReflectionsPanel key={key} opportunityId={opportunityId} />
+            : <PrivateReflectionsPanel key={key} opportunityId={opportunityId} />)}
           {(tab === 'Attendance' || tab === 'Hours') && user && <ParticipationPanel
             key={`${key}:${tab}`} opportunityId={opportunityId} userId={user.id} section={tab}
             sessions={hub.sessions} participants={hub.participants} onAccessDenied={refresh}

@@ -138,7 +138,10 @@ try {
       sql('CREATE PUBLICATION supabase_realtime;');
       sql(readFileSync(join(root, 'supabase/migrations/20261011000006_messaging_controls_realtime.sql'), 'utf8'));
     }
-    if (reflectionsMode) sql(readFileSync(join(root, 'supabase/migrations/20261011000004_private_activity_reflections.sql'), 'utf8'));
+    if (reflectionsMode) {
+      sql(readFileSync(join(root, 'supabase/migrations/20261011000004_private_activity_reflections.sql'), 'utf8'));
+      sql(readFileSync(join(root, 'supabase/migrations/20261026000002_activity_reflection_reader_access.sql'), 'utf8'));
+    }
     if (pilotPrivacyMode) {
       if (!messagingControlsMode) sql('CREATE PUBLICATION supabase_realtime;');
       sql('ALTER PUBLICATION supabase_realtime ADD TABLE public.opportunities, public.applications;');
@@ -158,7 +161,7 @@ try {
     if (messagingMode) console.log('PASS: private group messaging, server-derived sender, idempotent retries, rate limits, pagination, closed history and revoked access, before and after school-access migration.');
     if (messagingControlsMode) console.log('PASS: author-only edit/delete, stable retries, stale versions, tombstones, loaded-page refresh, membership revocation and RLS-protected Realtime publication.');
     if (pilotPrivacyMode) console.log('PASS: public email column/wildcard/filter denial, private owner/admin contacts, sanitised hub RPC, revocation, safe create/update, publication isolation, idempotent saved rows and deletion cascades, before and after school-access migration.');
-    if (reflectionsMode) console.log('PASS: author-only reflections, create/edit/delete, duplicate retries, stale versions, validation, private history after membership ends, pagination and no manager/admin access, before and after school-access migration.');
+  if (reflectionsMode) console.log('PASS: reflection create/edit/delete, duplicate retries, stale versions, validation, personal history, pagination, scoped owner/admin reads and classmate/unrelated-educator denial, before and after school-access migration.');
   }
   // Also run the existing ownership/role suite against the new restrictions.
   sql(`

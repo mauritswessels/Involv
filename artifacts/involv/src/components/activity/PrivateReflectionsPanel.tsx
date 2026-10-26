@@ -79,7 +79,7 @@ export default function PrivateReflectionsPanel({ opportunityId }: Props) {
       if (mounted.current) {
         setEntries(previous => [saved, ...previous.filter(r => r.id !== saved.id)]
           .sort((a,b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id)));
-        setDraft(null); setExpanded(saved.id); setStatus('Reflection saved privately.');
+        setDraft(null); setExpanded(saved.id); setStatus('Reflection saved.');
       }
     } catch (e) { if (mounted.current) setError(e instanceof Error ? e.message : 'Could not save. Your draft is kept.'); }
     finally { writing.current = false; if (mounted.current) setBusy(false); }
@@ -99,8 +99,8 @@ export default function PrivateReflectionsPanel({ opportunityId }: Props) {
 
   return <div className="space-y-4">
     <div className="card p-4 text-sm text-slate-600 flex flex-wrap items-center gap-2">
-      <LockIcon size={16} /><span>Only you can view these reflections in Involv. They are not shared with activity managers or the group.</span>
-      {opportunityId && <Link to="/reflections" className="text-blue-900 underline">All my private reflections</Link>}
+      <LockIcon size={16} /><span>Your reflections can be read by you, the activity’s approved owner and school admins, but not classmates or unrelated educators. Only you can edit or delete them.</span>
+      {opportunityId && <Link to="/reflections" className="text-blue-900 underline">All my reflections</Link>}
     </div>
     <div className="flex justify-between gap-2 flex-wrap">
       {canCreate && opportunityId && !draft && <button className="btn-secondary" disabled={busy || loading || !!deleting}
@@ -113,7 +113,7 @@ export default function PrivateReflectionsPanel({ opportunityId }: Props) {
     {error && <p role="alert" className="text-sm text-red-800 bg-red-50 rounded-lg p-3">{error}</p>}
     {status && <p role="status" className="text-sm text-green-800 bg-green-50 rounded-lg p-3">{status}</p>}
     {draft && <form onSubmit={save} className="card p-5 space-y-3">
-      <h2 className="font-semibold text-slate-900">{draft.snapshot ? 'Edit private reflection' : 'New private reflection'}</h2>
+      <h2 className="font-semibold text-slate-900">{draft.snapshot ? 'Edit reflection' : 'New reflection'}</h2>
       <p className="text-xs text-slate-500">Reflect on what you did, what you learnt and how it went. Minimum 30 words.</p>
       <label htmlFor="reflection-content" className="label-base">Your reflection</label>
       <textarea id="reflection-content" className="input-base resize-y" rows={7} value={draft.content} disabled={busy}
@@ -135,8 +135,8 @@ export default function PrivateReflectionsPanel({ opportunityId }: Props) {
     </div>}
     {!loading && !error && !entries.length && <div className="card p-8 text-center">
       <BookOpenIcon className="mx-auto text-slate-400 mb-3" size={28} />
-      <h2 className="text-sm font-semibold text-slate-700">No private reflections yet</h2>
-      <p className="text-xs text-slate-500 mt-2">{opportunityId && !canCreate ? 'Only accepted students can start reflections for this activity. Managers cannot view students’ reflections.' : 'Write a reflection from the Reflections tab of an activity you have joined.'}</p>
+      <h2 className="text-sm font-semibold text-slate-700">No reflections yet</h2>
+      <p className="text-xs text-slate-500 mt-2">{opportunityId && !canCreate ? 'Only accepted students can start reflections for this activity.' : 'Write a reflection from the Reflections tab of an activity you have joined.'}</p>
     </div>}
     {entries.map(entry => <article key={entry.id} className="card p-5 space-y-3">
       <div className="flex justify-between flex-wrap gap-2">
