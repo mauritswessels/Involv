@@ -24,9 +24,11 @@
     "test:participation": "node tests/security/run-school-access.mjs --participation",
     "test:portfolio": "node tests/security/run-school-access.mjs --portfolio && node tests/security/portfolio-csv.mjs",
     "load:50": "VUS=50 node tests/load/launch-readiness.mjs",
-    "load:100": "VUS=100 node tests/load/launch-readiness.mjs"
+    "load:100": "VUS=100 node tests/load/launch-readiness.mjs",
+    "test:full-stack": "node tests/security/run-full-stack.mjs"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.3.0",
     "@supabase/supabase-js": "^2.106.2",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",

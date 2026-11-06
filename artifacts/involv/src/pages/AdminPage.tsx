@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import ReportsPanel from '../components/admin/ReportsPanel';
+import PrivacyRequestsPanel from '../components/admin/PrivacyRequestsPanel';
 import {
   DownloadIcon,
   FileTextIcon,
@@ -40,7 +42,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { isSchoolEmail } from '../lib/schoolAccess';
 
-type Tab = 'users' | 'opportunities' | 'applications';
+type Tab = 'users' | 'opportunities' | 'applications' | 'reports' | 'privacy';
+const TAB_ORDER: Tab[] = ['users', 'opportunities', 'applications', 'reports', 'privacy'];
 
 const ROLES: UserRole[] = ['student', 'teacher', 'organizer', 'admin'];
 const STATUSES = ['active', 'draft', 'closed', 'archived'] as const;
@@ -62,7 +65,15 @@ const statusColors: Record<string, string> = {
 
 export default function AdminPage() {
   const { user: me } = useAuth();
-  const [tab, setTab] = useState<Tab>('users');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get('tab') as Tab | null;
+  const [tab, setTabState] = useState<Tab>(requestedTab && TAB_ORDER.includes(requestedTab) ? requestedTab : 'users');
+  const setTab = (next: Tab) => { setTabState(next); setSearchParams(next === 'users' ? {} : { tab: next }, { replace: true }); };
+  useEffect(() => {
+    if (requestedTab && TAB_ORDER.includes(requestedTab)) setTabState(requestedTab);
+  }, [requestedTab]);
+  const [openReports, setOpenReports] = useState<number | null>(null);
+  const [openRequests, setOpenRequests] = useState<number | null>(null);
 
   // Data
   const [users, setUsers]               = useState<User[]>([]);
@@ -209,6 +220,8 @@ export default function AdminPage() {
     users:         `Users (${users.length})`,
     opportunities: `Opportunities (${opportunities.length})`,
     applications:  `Applications (${applications.length})`,
+    reports:       openReports ? `Reports (${openReports})` : 'Reports',
+    privacy:       openRequests ? `Privacy requests (${openRequests})` : 'Privacy requests',
   };
 
   return (
@@ -247,12 +260,12 @@ export default function AdminPage() {
         {roleNotice && <div role="status" className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800">{roleNotice}</div>}
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-slate-200">
-          {(['users', 'opportunities', 'applications'] as Tab[]).map(t => (
+        <div className="flex gap-1 border-b border-slate-200 overflow-x-auto">
+          {TAB_ORDER.map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 tab === t
                   ? 'border-blue-900 text-blue-900'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -576,6 +589,9 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {tab === 'reports' && <ReportsPanel onCountChange={setOpenReports} />}
+        {tab === 'privacy' && <PrivacyRequestsPanel onCountChange={setOpenRequests} />}
 
       </div>
     </div>

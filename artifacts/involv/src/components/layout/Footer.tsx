@@ -22,6 +22,7 @@ export default function Footer() {
                 <Link to="/browse" className="text-xs text-slate-500 hover:text-slate-900">Browse opportunities</Link>
                 <Link to="/login" className="text-xs text-slate-500 hover:text-slate-900">Sign in</Link>
                 <Link to="/create" className="text-xs text-slate-500 hover:text-slate-900">Post an opportunity</Link>
+                <Link to="/privacy" className="text-xs text-slate-500 hover:text-slate-900">Privacy</Link>
               </div>
             </div>
             <div>

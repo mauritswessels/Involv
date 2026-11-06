@@ -6,6 +6,7 @@ import { getActivityHub, type ActivityHubData } from '../services/activityServic
 import { listMessages, messageUpdates, sendMessage, type ActivityMessage } from '../services/messageService';
 import { supabase } from '../lib/supabase';
 import MessageControls from '../components/activity/MessageControls';
+import ReportMessageButton from '../components/activity/ReportMessageButton';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function merge(previous: ActivityMessage[], incoming: ActivityMessage[]) {
@@ -232,6 +233,7 @@ function ActivityChat({ opportunityId, userId }: { opportunityId: string; userId
                   {message.sender_id === userId && <MessageControls message={message} enabled={ready}
                     onChanged={next => { if (mounted.current && !denied.current) setMessages(previous => merge(previous, [next])); }}
                     onDenied={report} />}
+                  {message.sender_id !== userId && !message.deleted_at && <ReportMessageButton messageId={message.id} enabled={ready} />}
                 </div>
               </article>
             ))}

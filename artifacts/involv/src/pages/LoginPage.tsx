@@ -127,7 +127,8 @@ export default function LoginPage() {
 
               <p className="text-xs text-slate-500 text-center mt-5 leading-relaxed">
                 By signing in, you agree to use this platform for school-related service-learning
-                activities only. Your school email is used for verification.
+                activities only. Your school email is used for verification.{' '}
+                <Link to="/privacy" className="underline hover:text-slate-700">How Involv uses your information</Link>
               </p>
             </div>
           )}

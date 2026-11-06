@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BellIcon, BookmarkIcon, CheckIcon, ChevronDownIcon,
+  BellIcon, BookmarkIcon, CalendarIcon, CheckIcon, ChevronDownIcon, ClockIcon,
   LayoutDashboardIcon, MenuIcon, MessageSquareIcon,
   PlusIcon, ShieldIcon, XIcon,
 } from 'lucide-react';
@@ -17,17 +17,25 @@ function timeAgo(iso: string) {
 }
 
 const NOTIF_ICONS: Record<string, React.ReactNode> = {
-  message: <MessageSquareIcon size={13} />,
-  accepted: <CheckIcon size={13} />,
-  application: <BellIcon size={13} />,
-  announcement: <BellIcon size={13} />,
+  application_received: <BellIcon size={13} />,
+  application_update: <CheckIcon size={13} />,
+  announcement: <MessageSquareIcon size={13} />,
+  hours_reviewed: <CheckIcon size={13} />,
+  deadline_reminder: <ClockIcon size={13} />,
+  session_reminder: <CalendarIcon size={13} />,
+  report_update: <ShieldIcon size={13} />,
+  privacy_request_update: <ShieldIcon size={13} />,
 };
 
 const NOTIF_COLOURS: Record<string, string> = {
-  message: 'bg-blue-100 text-blue-700',
-  accepted: 'bg-green-100 text-green-700',
-  application: 'bg-amber-100 text-amber-700',
+  application_received: 'bg-amber-100 text-amber-700',
+  application_update: 'bg-green-100 text-green-700',
   announcement: 'bg-violet-100 text-violet-700',
+  hours_reviewed: 'bg-green-100 text-green-700',
+  deadline_reminder: 'bg-red-100 text-red-700',
+  session_reminder: 'bg-blue-100 text-blue-700',
+  report_update: 'bg-slate-100 text-slate-700',
+  privacy_request_update: 'bg-slate-100 text-slate-700',
 };
 
 export default function Navbar() {
@@ -139,14 +147,12 @@ export default function Navbar() {
                             onClick={() => {
                               markRead(n.id);
                               setNotifOpen(false);
-                              if (n.opportunityId && n.type === 'message') {
-                                navigate(`/chat/${n.opportunityId}`);
-                              }
+                              if (n.link) navigate(n.link);
                             }}
                             className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex gap-3 ${!n.read ? 'bg-blue-50/40' : ''}`}
                           >
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${NOTIF_COLOURS[n.type]}`}>
-                              {NOTIF_ICONS[n.type]}
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${NOTIF_COLOURS[n.kind] ?? 'bg-slate-100 text-slate-700'}`}>
+                              {NOTIF_ICONS[n.kind] ?? <BellIcon size={13} />}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`text-xs font-semibold ${!n.read ? 'text-slate-900' : 'text-slate-600'}`}>{n.title}</p>

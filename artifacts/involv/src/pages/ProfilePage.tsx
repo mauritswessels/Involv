@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import YourDataPanel from '../components/profile/YourDataPanel';
 import type { Category } from '../types';
 
 const CATEGORIES: Category[] = [
@@ -382,6 +383,8 @@ export default function ProfilePage() {
             <button onClick={handleSave} className="btn-primary">Save changes</button>
           </div>
         )}
+
+        <YourDataPanel />
       </div>
     </div>
   );

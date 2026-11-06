@@ -1,89 +1,88 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
+import {
+  getMyNotifications, isNotInstalled, markNotificationsRead, queueMyReminders,
+  type AppNotification,
+} from '../services/notificationService';
+import { logSafeError } from '../utils/safeConsole';
 
-export interface AppNotification {
-  id: string;
-  type: 'message' | 'application' | 'accepted' | 'announcement';
-  title: string;
-  body: string;
-  opportunityId?: string;
-  opportunityTitle?: string;
-  read: boolean;
-  createdAt: string;
-}
+export type { AppNotification } from '../services/notificationService';
 
 interface NotificationContextType {
   notifications: AppNotification[];
   unreadCount: number;
   markRead: (id: string) => void;
   markAllRead: () => void;
-  addNotification: (n: Omit<AppNotification, 'id' | 'read' | 'createdAt'>) => void;
+  refresh: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
 
-// Mock seed notifications
-const MOCK_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: 'n1',
-    type: 'accepted',
-    title: 'Application accepted',
-    body: 'You have been accepted for Peer Tutoring Programme — Maths & Sciences.',
-    opportunityId: '2',
-    opportunityTitle: 'Peer Tutoring Programme — Maths & Sciences',
-    read: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: 'n2',
-    type: 'message',
-    title: 'New message',
-    body: 'Mr. Okonkwo: "Welcome everyone! First session is this Thursday."',
-    opportunityId: '2',
-    opportunityTitle: 'Peer Tutoring Programme — Maths & Sciences',
-    read: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    id: 'n3',
-    type: 'application',
-    title: 'New application',
-    body: 'A new student applied to Riverside Park Clean-Up Campaign.',
-    opportunityId: '1',
-    opportunityTitle: 'Riverside Park Clean-Up Campaign',
-    read: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-];
-
+/**
+ * Real notifications from the database. Reminders are queued on sign-in and on
+ * focus; the list refreshes every minute and immediately on Realtime inserts.
+ * Signed-out visitors and unconfigured previews simply have no notifications.
+ */
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const [notifications, setNotifications] = useState<AppNotification[]>(MOCK_NOTIFICATIONS);
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const disabled = useRef(false);
+  const load = useRef<() => Promise<void>>(async () => {});
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  useEffect(() => {
+    setNotifications([]);
+    disabled.current = false;
+    if (!userId || !isSupabaseConfigured) { load.current = async () => {}; return; }
+    let active = true, running = false, lastReminderRun = 0;
+    const refresh = async () => {
+      if (!active || running || disabled.current) return;
+      running = true;
+      try {
+        if (Date.now() - lastReminderRun > 10 * 60_000) {
+          lastReminderRun = Date.now();
+          await queueMyReminders();
+        }
+        const rows = await getMyNotifications();
+        if (active) setNotifications(rows);
+      } catch (err) {
+        if (isNotInstalled(err)) disabled.current = true; // migration not applied yet: stay quiet
+        else logSafeError('[Notifications] refresh failed', err);
+      } finally { running = false; }
+    };
+    load.current = refresh;
+    void refresh();
+    const timer = setInterval(() => void refresh(), 60_000);
+    const onFocus = () => void refresh();
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onFocus);
+    const channel = supabase.channel(`notifications:${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+        () => void refresh())
+      .subscribe();
+    return () => {
+      active = false; clearInterval(timer);
+      window.removeEventListener('focus', onFocus); window.removeEventListener('online', onFocus);
+      void supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   const markRead = useCallback((id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+    markNotificationsRead([id]).catch(err => logSafeError('[Notifications] mark read failed', err));
   }, []);
 
   const markAllRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    markNotificationsRead().catch(err => logSafeError('[Notifications] mark all read failed', err));
   }, []);
 
-  const addNotification = useCallback((n: Omit<AppNotification, 'id' | 'read' | 'createdAt'>) => {
-    const newN: AppNotification = {
-      ...n,
-      id: `n-${Date.now()}`,
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-    setNotifications(prev => [newN, ...prev]);
-    // Browser notification if permission granted
-    if (Notification.permission === 'granted') {
-      new Notification(n.title, { body: n.body, icon: '/favicon.png' });
-    }
-  }, []);
+  const refresh = useCallback(() => { void load.current(); }, []);
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markRead, markAllRead, addNotification }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, markRead, markAllRead, refresh }}>
       {children}
     </NotificationContext.Provider>
   );

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
@@ -5,22 +6,23 @@ import { NotificationProvider } from './context/NotificationContext';
 import Layout from './components/layout/Layout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
-import OnboardingPage from './pages/OnboardingPage';
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 import BrowsePage from './pages/BrowsePage';
 import OpportunityDetailPage from './pages/OpportunityDetailPage';
-import CreateOpportunityPage from './pages/CreateOpportunityPage';
-import StudentDashboardPage from './pages/StudentDashboardPage';
-import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
-import ApplicationsManagementPage from './pages/ApplicationsManagementPage';
-import ProfilePage from './pages/ProfilePage';
-import SavedOpportunitiesPage from './pages/SavedOpportunitiesPage';
-import EditOpportunityPage from './pages/EditOpportunityPage';
-import AdminPage from './pages/AdminPage';
-import ChatPage from './pages/ChatPage';
-import ActivityHubPage from './pages/ActivityHubPage';
-import ServicePortfolioPage from './pages/ServicePortfolioPage';
-import PrivateReflectionsPage from './pages/PrivateReflectionsPage';
+const CreateOpportunityPage = lazy(() => import('./pages/CreateOpportunityPage'));
+const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
+const OrganizerDashboardPage = lazy(() => import('./pages/OrganizerDashboardPage'));
+const ApplicationsManagementPage = lazy(() => import('./pages/ApplicationsManagementPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SavedOpportunitiesPage = lazy(() => import('./pages/SavedOpportunitiesPage'));
+const EditOpportunityPage = lazy(() => import('./pages/EditOpportunityPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const ActivityHubPage = lazy(() => import('./pages/ActivityHubPage'));
+const ServicePortfolioPage = lazy(() => import('./pages/ServicePortfolioPage'));
+const PrivateReflectionsPage = lazy(() => import('./pages/PrivateReflectionsPage'));
 import NotFoundPage from './pages/NotFoundPage';
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
@@ -51,8 +53,17 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function PageLoading() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center" role="status" aria-label="Loading">
+      <div className="w-6 h-6 border-2 border-blue-900 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
 function AppRoutes() {
   return (
+    <Suspense fallback={<PageLoading />}>
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
@@ -66,6 +77,7 @@ function AppRoutes() {
       />
 
       <Route path="/browse" element={<Layout><BrowsePage /></Layout>} />
+      <Route path="/privacy" element={<Layout><PrivacyPage /></Layout>} />
       <Route path="/opportunities/:id" element={<Layout><OpportunityDetailPage /></Layout>} />
 
       <Route
@@ -163,6 +175,7 @@ function AppRoutes() {
       <Route path="/reflections" element={<PrivateRoute><Layout><PrivateReflectionsPage /></Layout></PrivateRoute>} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </Suspense>
   );
 }
 

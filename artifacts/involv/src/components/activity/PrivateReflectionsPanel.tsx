@@ -115,6 +115,7 @@ export default function PrivateReflectionsPanel({ opportunityId }: Props) {
     {draft && <form onSubmit={save} className="card p-5 space-y-3">
       <h2 className="font-semibold text-slate-900">{draft.snapshot ? 'Edit reflection' : 'New reflection'}</h2>
       <p className="text-xs text-slate-500">Reflect on what you did, what you learnt and how it went. Minimum 30 words.</p>
+      <p className="text-xs text-slate-500">Visible to you, this activity's organiser and school admins. Other students cannot read it.</p>
       <label htmlFor="reflection-content" className="label-base">Your reflection</label>
       <textarea id="reflection-content" className="input-base resize-y" rows={7} value={draft.content} disabled={busy}
         maxLength={10000} onChange={e => setDraft({...draft,content:e.target.value})} />

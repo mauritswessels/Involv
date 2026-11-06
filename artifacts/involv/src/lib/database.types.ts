@@ -25,6 +25,14 @@ export type Database = {
         };
         Insert: never; Update: never; Relationships: [];
       };
+      notifications: {
+        Row: {
+          id: string; user_id: string; kind: string; title: string; body: string;
+          opportunity_id: string | null; link: string; dedupe_key: string | null;
+          read_at: string | null; created_at: string;
+        };
+        Insert: never; Update: never; Relationships: [];
+      };
       activity_messages: {
         Row: {
           id: string; opportunity_id: string; sender_id: string; sender_name: string;
@@ -307,6 +315,25 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      queue_my_reminders: { Args: Record<string, never>; Returns: number };
+      mark_my_notifications_read: { Args: { notification_ids?: string[] | null }; Returns: number };
+      report_activity_message: {
+        Args: { target_message_id: string; report_reason: string; report_details?: string };
+        Returns: unknown;
+      };
+      get_message_reports: { Args: { status_filter?: string }; Returns: unknown };
+      resolve_message_report: {
+        Args: { target_report_id: string; resolution: string; note?: string; remove_message?: boolean };
+        Returns: unknown;
+      };
+      submit_privacy_request: { Args: { request_kind: string; request_details?: string }; Returns: unknown };
+      get_my_privacy_requests: { Args: Record<string, never>; Returns: unknown };
+      get_privacy_requests: { Args: { status_filter?: string }; Returns: unknown };
+      update_privacy_request: {
+        Args: { target_request_id: string; new_status: string; admin_response?: string };
+        Returns: unknown;
+      };
+      export_my_data: { Args: Record<string, never>; Returns: unknown };
       get_managed_activity_reflections: {
         Args: { target_opportunity_id: string; before_created_at: string | null; before_id: string | null };
         Returns: unknown;

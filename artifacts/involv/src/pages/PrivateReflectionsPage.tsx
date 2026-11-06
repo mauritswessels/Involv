@@ -11,7 +11,7 @@ export default function PrivateReflectionsPage() {
     <div className="max-w-4xl mx-auto space-y-5">
       <Link to="/portfolio" className="text-sm text-blue-900 underline">Back to my service portfolio</Link>
       <h1 className="text-xl font-bold text-slate-900">My reflections</h1>
-      <p className="text-sm text-slate-500">Your own notes, including past activities. Leaving an activity does not reopen its private group or remove access to your personal reflections.</p>
+      <p className="text-sm text-slate-500">Your reflections, including past activities. They are visible to you, the organiser of that activity and school admins, never to other students. Leaving an activity does not reopen its private group or remove access to your personal reflections.</p>
       <PrivateReflectionsPanel key={`${user.id}:${user.role}`} />
     </div>
   </main>;

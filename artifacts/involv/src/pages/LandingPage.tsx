@@ -50,7 +50,7 @@ const STEPS = [
   {
     number: '03',
     title: 'Track your impact',
-    description: 'Check your application status, submit service hours for staff review, and keep private reflections on your experience.',
+    description: 'Check your application status, submit service hours for staff review, and keep reflections on your experience.',
     icon: '🏆',
   },
 ];
@@ -263,7 +263,7 @@ export default function LandingPage() {
               </h2>
               <p className="text-sm text-slate-600 leading-relaxed mb-6">
                 Keep applications, activity updates, attendance, and reviewed service hours in
-                one place. Students can also write reflections that only they can read.
+                one place. Students can also write reflections that classmates can't see.
               </p>
               <Link to="/login" className="btn-primary">
                 Get started <ArrowRightIcon size={14} />
