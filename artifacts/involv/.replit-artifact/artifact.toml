@@ -17,7 +17,7 @@ run = "pnpm --filter @workspace/involv run dev"
 [services.production]
 build = [ "pnpm", "--filter", "@workspace/involv", "run", "build" ]
 serve = "static"
-publicDir = "artifacts/involv/dist/public"
+publicDir = "artifacts/involv/dist"
 
 [[services.production.rewrites]]
 from = "/*"

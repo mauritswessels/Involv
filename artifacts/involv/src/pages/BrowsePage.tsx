@@ -117,7 +117,7 @@ export default function BrowsePage() {
     }
 
     return list;
-  }, [filters]);
+  }, [filters, opportunities]);
 
   const activeFilterCount =
     filters.categories.length +
@@ -314,23 +314,23 @@ export default function BrowsePage() {
                 {filtered.length} {filtered.length === 1 ? 'result' : 'results'} found
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               {/* Search */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={filters.search}
                   onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
                   placeholder="Search…"
-                  className="input-base pl-8 w-48 sm:w-60"
+                  className="input-base pl-8 w-full sm:w-60"
                 />
               </div>
               {/* Sort */}
               <select
                 value={filters.sortBy}
                 onChange={e => setFilters(f => ({ ...f, sortBy: e.target.value as FilterState['sortBy'] }))}
-                className="input-base w-auto"
+                className="input-base w-auto flex-1 sm:flex-none"
               >
                 <option value="newest">Newest first</option>
                 <option value="deadline">Deadline soonest</option>

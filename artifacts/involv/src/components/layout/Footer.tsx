@@ -27,9 +27,9 @@ export default function Footer() {
             <div>
               <p className="text-xs font-semibold text-slate-700 mb-2">Categories</p>
               <div className="flex flex-col gap-1.5">
-                <Link to="/browse" className="text-xs text-slate-500 hover:text-slate-900">Environment</Link>
-                <Link to="/browse" className="text-xs text-slate-500 hover:text-slate-900">Education</Link>
-                <Link to="/browse" className="text-xs text-slate-500 hover:text-slate-900">Community</Link>
+                <Link to="/browse?category=Sustainability%20%26%20Environment" className="text-xs text-slate-500 hover:text-slate-900">Environment</Link>
+                <Link to="/browse?category=Education%20%26%20Mentorship" className="text-xs text-slate-500 hover:text-slate-900">Education</Link>
+                <Link to="/browse?category=Community%20%26%20Social%20Impact" className="text-xs text-slate-500 hover:text-slate-900">Community</Link>
               </div>
             </div>
           </div>

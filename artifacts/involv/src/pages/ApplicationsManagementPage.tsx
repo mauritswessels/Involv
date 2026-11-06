@@ -197,12 +197,12 @@ export default function ApplicationsManagementPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-0.5 border-b border-slate-200">
+        <div className="flex gap-0.5 border-b border-slate-200 overflow-x-auto">
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-px ${
+              className={`shrink-0 whitespace-nowrap px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === tab
                   ? 'border-blue-900 text-blue-900'
                   : 'border-transparent text-slate-600 hover:text-slate-900'
