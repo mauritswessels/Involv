@@ -230,7 +230,7 @@ function SessionsTab({ isOrganizer }: { isOrganizer: boolean }) {
   };
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Calendar */}
       <div className="card p-4">
         <div className="flex items-center justify-between mb-4">

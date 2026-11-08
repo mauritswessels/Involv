@@ -246,7 +246,7 @@ export default function SessionsTab({ opportunityId, canManage, items, onChanged
   };
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="card p-4 self-start">
         <div className="flex items-center justify-between mb-4">
           <button

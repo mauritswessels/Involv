@@ -1,4 +1,6 @@
 import { lazy, Suspense } from 'react';
+import { DEMO_MODE } from './demo/demoMode';
+import DemoBanner from './components/demo/DemoBanner';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
@@ -185,6 +187,7 @@ export default function App() {
       <NotificationProvider>
         <AppProvider>
           <BrowserRouter>
+            {DEMO_MODE && <DemoBanner />}
             <AppRoutes />
           </BrowserRouter>
         </AppProvider>

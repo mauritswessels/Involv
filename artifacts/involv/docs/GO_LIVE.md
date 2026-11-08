@@ -1,5 +1,7 @@
 # Putting Involv online
 
+> **The site currently runs in demo mode** (sample data, no sign-in). When you finish these steps, switch it to the real site as described in [DEMO_MODE.md](./DEMO_MODE.md).
+
 A step-by-step runbook for the first deployment. Do the steps in order. Nothing
 here invites students: that still needs the school's approval
 ([STUDENT_PILOT_CHECKLIST.md](./STUDENT_PILOT_CHECKLIST.md)).

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { DEMO_MODE } from '../demo/demoMode';
+import DemoRolePicker from '../components/demo/DemoRolePicker';
 import { actionError } from '../utils/actionError';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircleIcon } from 'lucide-react';
@@ -93,8 +95,25 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
 
+          {/* ── Demo mode: pick a role instead of signing in ── */}
+          {DEMO_MODE && step === 'signin' && (
+            <div className="card p-8">
+              <div className="text-center mb-6">
+                <h1 className="text-lg font-bold text-slate-900 mb-1">Explore the Involv demo</h1>
+                <p className="text-sm text-slate-600">
+                  Pick a role to see Involv from that side. Everything uses sample data and stays in your browser.
+                </p>
+              </div>
+              <DemoRolePicker />
+              <p className="text-xs text-slate-500 text-center mt-5 leading-relaxed">
+                Sign-in with ISZL Google accounts opens once the school approves Involv.{' '}
+                <Link to="/privacy" className="underline hover:text-slate-700">How Involv uses your information</Link>
+              </p>
+            </div>
+          )}
+
           {/* ── Step 1: Google sign-in ── */}
-          {step === 'signin' && (
+          {!DEMO_MODE && step === 'signin' && (
             <div className="card p-8">
               <div className="text-center mb-7">
                 <h1 className="text-lg font-bold text-slate-900 mb-1">Sign in to Involv</h1>
@@ -166,9 +185,11 @@ export default function LoginPage() {
             </div>
           )}
 
-          <p className="text-xs text-slate-500 text-center mt-5">
-            No account needed — you sign in with your existing school Google account.
-          </p>
+          {!DEMO_MODE && (
+            <p className="text-xs text-slate-500 text-center mt-5">
+              No account needed — you sign in with your existing school Google account.
+            </p>
+          )}
         </div>
       </div>
     </div>
