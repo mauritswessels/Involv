@@ -25,6 +25,7 @@ const ServicePortfolioPage = lazy(() => import('./pages/ServicePortfolioPage'));
 const PrivateReflectionsPage = lazy(() => import('./pages/PrivateReflectionsPage'));
 import NotFoundPage from './pages/NotFoundPage';
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const LtiCompletePage = lazy(() => import('./pages/LtiCompletePage'));
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
@@ -80,6 +81,7 @@ function AppRoutes() {
 
       <Route path="/browse" element={<Layout><BrowsePage /></Layout>} />
       <Route path="/privacy" element={<Layout><PrivacyPage /></Layout>} />
+      <Route path="/lti/complete" element={<LtiCompletePage />} />
       <Route path="/opportunities/:id" element={<Layout><OpportunityDetailPage /></Layout>} />
 
       <Route

@@ -12,6 +12,7 @@ a mockup sandbox and an unused Express API scaffold) and is not needed to run th
 | I want to… | Read |
 | --- | --- |
 | Switch between the demo and the real site | [`artifacts/involv/docs/DEMO_MODE.md`](artifacts/involv/docs/DEMO_MODE.md) |
+| Open Involv from inside Toddle (LTI) | [`artifacts/involv/docs/TODDLE_LTI.md`](artifacts/involv/docs/TODDLE_LTI.md) |
 | Put the site online | [`artifacts/involv/docs/GO_LIVE.md`](artifacts/involv/docs/GO_LIVE.md) |
 | Prepare the student pilot | [`artifacts/involv/docs/STUDENT_PILOT_CHECKLIST.md`](artifacts/involv/docs/STUDENT_PILOT_CHECKLIST.md) |
 | Handle reports and privacy requests | [`artifacts/involv/docs/DATA_REQUESTS.md`](artifacts/involv/docs/DATA_REQUESTS.md) |

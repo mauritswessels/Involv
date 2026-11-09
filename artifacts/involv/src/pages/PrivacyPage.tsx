@@ -150,6 +150,7 @@ export default function PrivacyPage() {
               <li><strong>Supabase</strong> stores the database and handles sign-in. Region: <Pending value={c.databaseRegion} />.</li>
               <li><strong>Google</strong> confirms your ISZL account when you sign in. Involv only receives your basic account details, not your email, Drive or other Google data.</li>
               <li><strong>Website hosting</strong>: <Pending value={c.hostingProvider} />.</li>
+              <li><strong>Toddle</strong>: if you open Involv from a Toddle course, Toddle confirms who you are and shares only your name and school email with Involv.</li>
             </ul>
           </Section>
 

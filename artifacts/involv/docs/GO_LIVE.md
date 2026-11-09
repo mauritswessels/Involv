@@ -35,8 +35,8 @@ Replace `involv.me` below with your real domain if it's different.
 
 - **Authentication → Hooks → Before User Created**: enable it and choose
   `public.before_school_user_created`. This blocks non-ISZL Google accounts.
-- **Authentication → Providers**: Google on; turn off email, phone and anonymous
-  sign-ups if they are on.
+- **Authentication → Providers**: Google on; Email on (needed for opening Involv from
+  Toddle, see [TODDLE_LTI.md](./TODDLE_LTI.md)); turn off phone and anonymous sign-ups.
 - **Authentication → URL Configuration**:
   - Site URL: `https://involv.me`
   - Redirect URLs: `https://involv.me/login` (and `https://www.involv.me/login` if you use www).
