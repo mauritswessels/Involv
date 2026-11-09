@@ -1,7 +1,8 @@
 import HourReviewHistory from '../components/activity/HourReviewHistory';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DownloadIcon, RefreshCwIcon } from 'lucide-react';
+import ToddleCasExport from '../components/portfolio/ToddleCasExport';
+import { ClipboardCopyIcon, DownloadIcon, RefreshCwIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { EmptyState } from '../components/ui/EmptyState';
 import { getMyServicePortfolio, type ServicePortfolio, type PortfolioEntry } from '../services/portfolioService';
@@ -72,6 +73,20 @@ function PortfolioContent() {
   const canExport = !!data && !error && !loading && !refreshing && data.entries.length > 0;
   const noCredit = data && data.entries.length > 0 && data.approvedHours === 0;
 
+  const [exporting, setExporting] = useState<string | null>(null);
+  const activities = useMemo(() => {
+    const map = new Map<string, { opportunityId: string; title: string; approvedHours: number; pending: number; entries: PortfolioEntry[] }>();
+    (data?.entries ?? []).forEach(e => {
+      const a = map.get(e.opportunityId) ?? { opportunityId: e.opportunityId, title: e.activityTitle, approvedHours: 0, pending: 0, entries: [] };
+      a.entries.push(e);
+      if (e.status === 'approved') a.approvedHours += e.hours;
+      if (e.status === 'pending') a.pending += 1;
+      map.set(e.opportunityId, a);
+    });
+    return [...map.values()];
+  }, [data]);
+  const exportTarget = activities.find(a => a.opportunityId === exporting) ?? null;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="bg-white border-b border-slate-200">
@@ -127,6 +142,28 @@ function PortfolioContent() {
               ))}
             </section>
 
+            {activities.length > 0 && (
+              <section aria-labelledby="toddle-cas-heading" className="card p-4 space-y-3">
+                <div>
+                  <h2 id="toddle-cas-heading" className="text-sm font-semibold text-slate-900">Add to Toddle CAS</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Toddle stays your official CAS record. Get each activity ready to paste in: title, dates, supervisor, description, approved hours and reflections.</p>
+                </div>
+                <ul className="divide-y divide-slate-100">
+                  {activities.map(a => (
+                    <li key={a.opportunityId} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-800 break-words">{a.title}</p>
+                        <p className="text-xs text-slate-500">{hrs(a.approvedHours)} approved{a.pending ? ` · ${a.pending} pending` : ''}</p>
+                      </div>
+                      <button type="button" onClick={() => setExporting(a.opportunityId)} className="btn-secondary text-xs">
+                        <ClipboardCopyIcon size={13} aria-hidden="true" /> Copy for Toddle
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             {noCredit && (
               <p data-testid="status-portfolio-no-credit" role="status" className="text-sm text-slate-700 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3">
                 No hours are approved yet. Pending and rejected records are shown below but are not counted as credit.
@@ -173,6 +210,10 @@ function PortfolioContent() {
           </>
         )}
       </div>
+      {exportTarget && (
+        <ToddleCasExport opportunityId={exportTarget.opportunityId} activityTitle={exportTarget.title}
+          entries={exportTarget.entries} onClose={() => setExporting(null)} />
+      )}
     </div>
   );
 }
