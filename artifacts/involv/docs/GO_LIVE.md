@@ -18,9 +18,14 @@ Replace `involv.me` below with your real domain if it's different.
    Each file is one transaction: if it fails, nothing changes; read the error,
    fix the cause, run it again.
    - `20261006000001_school_access_trusted_roles.sql` refuses to run until a
-     verified `@iszl.ch` admin exists. Sign in once on the site with your ISZL
-     account, then run:
-     `UPDATE public.profiles SET role = 'admin' WHERE email = 'you@iszl.ch';`
+     verified `@iszl.ch` admin exists, and a plain `UPDATE … SET role = 'admin'`
+     is blocked by the role guard. Use
+     [`supabase/imports/switch_on_school_access.sql`](../supabase/imports/switch_on_school_access.sql)
+     instead: put your email at the top and run it. It makes your account the first
+     admin, then applies the school-access, notifications, message-reports and
+     privacy-requests migrations, and ends with the readiness check. Your account
+     must exist first (sign in once, or Supabase → Authentication → Users → Add user
+     with "Auto Confirm User" for your own address).
    - `20261011000006_messaging_controls_realtime.sql` needs Realtime enabled
      (Database → Publications → `supabase_realtime` exists).
 4. The four newest files (6 November 2026) add:
